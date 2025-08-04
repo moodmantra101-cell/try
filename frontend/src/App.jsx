@@ -19,13 +19,14 @@ import OurTeam from "./pages/Team";
 import MoodAnalysis from "./pages/MoodAnalysis";
 import MoodTest from "./components/MoodAnalysis/MoodTest";
 import Child from "./components/Assessment/Child";
-import Couples from "./components/Assessment/couples";
+ 
 import Family from "./components/Assessment/family";
 import Individual from "./components/Assessment/individual";
 import Result from "./pages/Result";
 
 import  MoodTracker  from "../MoodAnalyzer/moodtracker";
 import Resources from "./pages/Resources";
+import Couples from "./components/Assessment/couples";
 
 // Lazy load components
 const Doctors = lazy(() => import("./pages/Doctors"));
