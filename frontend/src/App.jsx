@@ -26,7 +26,7 @@ import Result from "./pages/Result";
 
 import  MoodTracker  from "../MoodAnalyzer/moodtracker";
 import Resources from "./pages/Resources";
-import Couples from "./components/Assessment/couples";
+import Couples from "./components/Assessment/Couples";
  
 
 // Lazy load components
