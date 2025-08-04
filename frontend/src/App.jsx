@@ -19,15 +19,20 @@ import OurTeam from "./pages/Team";
 import MoodAnalysis from "./pages/MoodAnalysis";
 import MoodTest from "./components/MoodAnalysis/MoodTest";
 import Child from "./components/Assessment/Child";
- 
+
 import Family from "./components/Assessment/family";
 import Individual from "./components/Assessment/individual";
 import Result from "./pages/Result";
 
-import  MoodTracker  from "../MoodAnalyzer/moodtracker";
+import MoodTracker from "../MoodAnalyzer/moodtracker";
 import Resources from "./pages/Resources";
 import Couples from "./components/Assessment/Couples";
- 
+
+import Assessments from "./pages/Assessments";
+import Assessment from "./pages/Assessment";
+import MyAssessments from "./pages/MyAssessments";
+import AssessmentDetailedResults from "./components/AssessmentDetailedResults";
+import CancellationPolicy from "./pages/CancellationPolicy";
 
 // Lazy load components
 const Doctors = lazy(() => import("./pages/Doctors"));
@@ -45,6 +50,7 @@ const ScrollToTop = () => {
 
 const App = () => {
   const [showLoader, setShowLoader] = useState(true);
+  const location = useLocation();
 
   const loaderComponent = (
     <div
@@ -75,7 +81,7 @@ const App = () => {
         />
         <Navbar />
         <ScrollToTop /> {/* Add this component */}
-        <ScrollToTopFloatingButton />
+        {location.pathname !== "/" && <ScrollToTopFloatingButton />}
         <Suspense fallback={loaderComponent}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -90,9 +96,22 @@ const App = () => {
             <Route path="/my-profile" element={<MyProfile />} />
             <Route path="/my-appointments" element={<MyAppointments />} />
             <Route path="/appointment/:docId" element={<Appointment />} />
+            <Route
+              path="/cancellation-policy"
+              element={<CancellationPolicy />}
+            />
 
             {/* Assessment routes */}
-            <Route path="/assessments" element={<MoodAnalysis />} />
+            <Route path="/assessments" element={<Assessments />} />
+            <Route path="/assessment/:id" element={<Assessment />} />
+            <Route path="/my-assessments" element={<MyAssessments />} />
+            <Route
+              path="/assessment-results/:id"
+              element={<AssessmentDetailedResults />}
+            />
+
+            {/* Assessment routes */}
+            <Route path="/mood-analysis" element={<MoodAnalysis />} />
             <Route path="/moodtest" element={<MoodTest />} />
             <Route path="/child" element={<Child />} />
             <Route path="/couples" element={<Couples />} />

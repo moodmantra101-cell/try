@@ -125,7 +125,7 @@ const doctorDashboard = async (req, res) => {
     let earnings = 0;
 
     appointments.map((item) => {
-      if (item.isCompleted || item.payment) {
+      if (item.payment) {
         earnings += item.amount;
       }
     });
@@ -213,7 +213,7 @@ const getDoctorPatients = async (req, res) => {
 
         // Calculate total amount paid by this patient
         const totalAmount = patientAppointments.reduce((sum, app) => {
-          if (app.isCompleted || app.payment) {
+          if (app.payment) {
             return sum + app.amount;
           }
           return sum;

@@ -1,7 +1,18 @@
 import { AppContext } from "@/context/AppContext";
 import { DoctorContext } from "@/context/DoctorContext";
 import React, { useContext, useEffect, useState } from "react";
-import { Check, X, User, Calendar, Clock, DollarSign } from "lucide-react";
+import {
+  Check,
+  X,
+  User,
+  Calendar,
+  Clock,
+  DollarSign,
+  FileText,
+  Video,
+  Phone,
+  MapPin,
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -9,7 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import ProgressBar from "@/components/ProgressBar";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 
 const DoctorAppointments = () => {
   const {
@@ -24,6 +35,8 @@ const DoctorAppointments = () => {
     useContext(AppContext);
 
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
 
@@ -169,10 +182,10 @@ const DoctorAppointments = () => {
                           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                             item.payment
                               ? "bg-green-100 text-green-800"
-                              : "bg-orange-100 text-orange-800"
+                              : "bg-red-100 text-red-800"
                           }`}
                         >
-                          {item.payment ? "Online" : "Cash"}
+                          {item.payment ? "Paid" : "Not Paid"}
                         </span>
                       </div>
 
@@ -242,16 +255,17 @@ const DoctorAppointments = () => {
                               <Tooltip>
                                 <TooltipTrigger>
                                   <button
-                                    onClick={() =>
-                                      (window.location.href = "/my-patients")
-                                    }
+                                    onClick={() => {
+                                      setSelectedAppointment(item);
+                                      setShowDetailsModal(true);
+                                    }}
                                     className="p-2 rounded-lg text-blue-500 border border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
                                   >
-                                    <User size={16} />
+                                    <FileText size={16} />
                                   </button>
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-gray-800 text-white px-2 py-1 text-xs">
-                                  View Patient Details
+                                  View Appointment Details
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -285,10 +299,10 @@ const DoctorAppointments = () => {
                               className={`px-2 py-1 rounded-full text-xs font-medium ${
                                 item.payment
                                   ? "bg-green-100 text-green-800"
-                                  : "bg-orange-100 text-orange-800"
+                                  : "bg-red-100 text-red-800"
                               }`}
                             >
-                              {item.payment ? "Online" : "Cash"}
+                              {item.payment ? "Paid" : "Not Paid"}
                             </span>
                           </div>
                         </div>
@@ -367,12 +381,13 @@ const DoctorAppointments = () => {
                                 <Tooltip>
                                   <TooltipTrigger>
                                     <button
-                                      onClick={() =>
-                                        (window.location.href = "/my-patients")
-                                      }
+                                      onClick={() => {
+                                        setSelectedAppointment(item);
+                                        setShowDetailsModal(true);
+                                      }}
                                       className="p-2 rounded-lg text-blue-500 border border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
                                     >
-                                      <User size={16} />
+                                      <FileText size={16} />
                                     </button>
                                   </TooltipTrigger>
                                   <TooltipContent className="bg-gray-800 text-white px-2 py-1 text-xs">
@@ -391,6 +406,336 @@ const DoctorAppointments = () => {
           </>
         )}
       </div>
+
+      {/* Appointment Details Modal */}
+      <AnimatePresence>
+        {showDetailsModal && selectedAppointment && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[95vh] flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex-shrink-0 bg-white rounded-t-3xl p-6 border-b border-gray-200">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      Appointment Details
+                    </h2>
+                    <p className="text-gray-600">
+                      Complete information about this appointment
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowDetailsModal(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-6 overflow-y-auto flex-1">
+                {/* Patient Information */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <User className="text-blue-600" />
+                    Patient Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        value={selectedAppointment.userData.name || ""}
+                        disabled
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={selectedAppointment.userData.email || ""}
+                        disabled
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Phone
+                      </label>
+                      <input
+                        type="tel"
+                        value={
+                          selectedAppointment.userData.phone || "Not provided"
+                        }
+                        disabled
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Age
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          !isNaN(Date.parse(selectedAppointment.userData.dob))
+                            ? `${calculateAge(
+                                selectedAppointment.userData.dob
+                              )} years`
+                            : "N/A"
+                        }
+                        disabled
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Appointment Information */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <Calendar className="text-green-600" />
+                    Appointment Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Date
+                      </label>
+                      <input
+                        type="text"
+                        value={slotDateFormat(selectedAppointment.slotDate)}
+                        disabled
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Time
+                      </label>
+                      <input
+                        type="text"
+                        value={selectedAppointment.slotTime}
+                        disabled
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Payment Status
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          selectedAppointment.payment ? "Paid" : "Not Paid"
+                        }
+                        disabled
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Amount
+                      </label>
+                      <input
+                        type="text"
+                        value={`${currencySymbol}${selectedAppointment.amount}`}
+                        disabled
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Appointment Details */}
+                {selectedAppointment.reasonForVisit && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <FileText className="text-purple-600" />
+                      Appointment Details
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Reason for Visit
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedAppointment.reasonForVisit}
+                          disabled
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Session Type
+                        </label>
+                        <div className="flex items-center gap-2">
+                          {selectedAppointment.sessionType === "Online" ? (
+                            <Video className="text-blue-600" />
+                          ) : (
+                            <MapPin className="text-green-600" />
+                          )}
+                          <input
+                            type="text"
+                            value={selectedAppointment.sessionType}
+                            disabled
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                          />
+                        </div>
+                      </div>
+
+                      {selectedAppointment.sessionType === "Online" &&
+                        selectedAppointment.communicationMethod && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Communication Method
+                            </label>
+                            <input
+                              type="text"
+                              value={selectedAppointment.communicationMethod}
+                              disabled
+                              className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                            />
+                          </div>
+                        )}
+
+                      {selectedAppointment.briefNotes && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Brief Notes
+                          </label>
+                          <textarea
+                            value={selectedAppointment.briefNotes}
+                            disabled
+                            rows={3}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 resize-none"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Emergency Contact */}
+                {selectedAppointment.emergencyContact &&
+                  selectedAppointment.emergencyContact.name && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <Phone className="text-red-600" />
+                        Emergency Contact
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Name
+                          </label>
+                          <input
+                            type="text"
+                            value={selectedAppointment.emergencyContact.name}
+                            disabled
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Phone
+                          </label>
+                          <input
+                            type="tel"
+                            value={selectedAppointment.emergencyContact.phone}
+                            disabled
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Relationship
+                          </label>
+                          <input
+                            type="text"
+                            value={
+                              selectedAppointment.emergencyContact.relationship
+                            }
+                            disabled
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                {/* Status Information */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <Check className="text-blue-600" />
+                    Status Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Status
+                      </label>
+                      <div className="flex items-center gap-2">
+                        {selectedAppointment.cancelled ? (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Cancelled
+                          </span>
+                        ) : selectedAppointment.isCompleted ? (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Completed
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            Scheduled
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Consent Given
+                      </label>
+                      <div className="flex items-center gap-2">
+                        {selectedAppointment.consentGiven ? (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Yes
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            No
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex-shrink-0 p-6 border-t border-gray-200">
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

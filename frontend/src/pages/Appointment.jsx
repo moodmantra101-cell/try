@@ -21,6 +21,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import RelatedDoctor from "../components/RelatedDoctor";
+import AppointmentForm from "../components/AppointmentForm";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -50,13 +51,13 @@ const Appointment = () => {
   const [docSlots, setDocSlots] = useState([]);
   const [slotIndex, setSlotIndex] = useState(0);
   const [slotTime, setSlotTime] = useState("");
-  const [loading, setLoading] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showAppointmentForm, setShowAppointmentForm] = useState(false);
 
   // Calendar state
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -204,46 +205,25 @@ const Appointment = () => {
     );
   };
 
-  const bookAppointment = async () => {
+  const bookAppointment = () => {
     if (!token) {
       toast.warning("Login to book an appointment.");
       window.scrollTo(0, 0);
       return navigate("/login");
     }
 
-    setLoading(true);
-
-    try {
-      const date = docSlots[slotIndex][0].datetime;
-      let day = date.getDate().toString().padStart(2, "0");
-      let month = (date.getMonth() + 1).toString().padStart(2, "0");
-      let year = date.getFullYear();
-
-      const slotDate = day + "/" + month + "/" + year;
-
-      const { data } = await axios.post(
-        backendUrl + "/api/user/book-appointment",
-        { docId, slotDate, slotTime },
-        { headers: { token } }
-      );
-
-      if (data.success) {
-        toast.success(data.message);
-        getDoctorsData();
-        navigate("/my-appointments");
-        window.scrollTo(0, 0);
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error("An unexpected error occurred. Please try again.");
-      }
-    } finally {
-      setLoading(false);
+    if (!slotTime) {
+      toast.error("Please select a time slot");
+      return;
     }
+
+    setShowAppointmentForm(true);
+  };
+
+  const handleAppointmentSuccess = () => {
+    getDoctorsData();
+    navigate("/my-appointments");
+    window.scrollTo(0, 0);
   };
 
   // Calendar functions
@@ -865,24 +845,15 @@ const Appointment = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={bookAppointment}
-                  disabled={!slotTime || loading}
+                  disabled={!slotTime}
                   className={`w-full py-6 rounded-2xl text-white font-semibold text-lg transition-all flex items-center justify-center gap-3 shadow-xl ${
-                    !slotTime || loading
+                    !slotTime
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 hover:shadow-2xl"
                   }`}
                 >
-                  {loading ? (
-                    <>
-                      <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Check size={24} />
-                      Confirm Appointment
-                    </>
-                  )}
+                  <Check size={24} />
+                  Continue to Details
                 </motion.button>
               </motion.div>
             </div>
@@ -892,6 +863,16 @@ const Appointment = () => {
           <section className="py-16">
             <RelatedDoctor docId={docId} speciality={docInfo.speciality} />
           </section>
+
+          {/* Appointment Form Modal */}
+          <AppointmentForm
+            isOpen={showAppointmentForm}
+            onClose={() => setShowAppointmentForm(false)}
+            docInfo={docInfo}
+            selectedDate={docSlots[slotIndex]?.[0]?.datetime || new Date()}
+            selectedTime={slotTime}
+            onSuccess={handleAppointmentSuccess}
+          />
         </div>
       </div>
     )

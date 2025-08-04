@@ -1,8 +1,17 @@
 import axios from "axios";
-import { createContext, useState } from "react";
+import { createContext, useState, useContext } from "react";  // Added useContext here
 import { toast } from "react-toastify";
 
 export const AdminContext = createContext();
+
+// Custom hook
+export const useAuth = () => {
+  const context = useContext(AdminContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AdminProvider');
+  }
+  return context;
+};
 
 const AdminContextProvider = (props) => {
   const [aToken, setAtoken] = useState(
@@ -125,5 +134,7 @@ const AdminContextProvider = (props) => {
     </AdminContext.Provider>
   );
 };
+
+ 
 
 export default AdminContextProvider;
