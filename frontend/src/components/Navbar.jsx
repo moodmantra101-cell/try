@@ -89,8 +89,8 @@ const Navbar = () => {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-white/90 backdrop-blur-xl shadow-lg border-b border-purple-100/50"
-          : "bg-gradient-to-r from-purple-50/95 via-pink-50/95 to-indigo-50/95 backdrop-blur-md"
+          ? "bg-white backdrop-blur-xl shadow-lg border-b border-purple-100/50"
+          : "bg-white"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -117,7 +117,6 @@ const Navbar = () => {
               { path: "/ourTeam", label: "OUR TEAM" },
               { path: "/mood-analysis", label: "ASSESSMENT" },
               { path: "/about", label: "ABOUT" },
-              
             ].map((link) => (
               <NavLink key={link.path} to={link.path}>
                 <motion.div whileHover={{ y: -2 }} className="relative group">
@@ -142,23 +141,6 @@ const Navbar = () => {
                 </motion.div>
               </NavLink>
             ))}
-
-            {/* Admin/Doctor Login Button */}
-            {!token && (
-              <NavLink
-                to={import.meta.env.VITE_ADMIN_PANEL_URL}
-                target="_blank"
-              >
-                <motion.button
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
-                >
-                  <WordRotate words={["Doctor"]} />
-                  Login
-                </motion.button>
-              </NavLink>
-            )}
           </nav>
 
           {/* Auth Buttons/Profile */}
@@ -347,26 +329,6 @@ const Navbar = () => {
                     </motion.div>
                   </NavLink>
                 ))}
-
-                {!token && (
-                  <div className="pt-4 border-t border-gray-200">
-                    <NavLink
-                      to={"https://prescripto-admin-ka03.onrender.com"}
-                      target="_blank"
-                    >
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold shadow-lg"
-                      >
-                        <span className="flex items-center justify-center gap-2">
-                          <WordRotate words={["Admin", "Doctor"]} />
-                          Login
-                        </span>
-                      </motion.button>
-                    </NavLink>
-                  </div>
-                )}
               </nav>
             </motion.div>
           </>

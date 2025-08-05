@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { assets } from "../assets/assets";
 import {
   Copyright,
@@ -14,9 +14,12 @@ import {
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { AppContext } from "../context/AppContext";
+import { WordRotate } from "./WordRotateComp";
 
 const Footer = () => {
   const navigate = useNavigate();
+  const { token } = useContext(AppContext);
 
   const currentYear = new Date().getFullYear();
 
@@ -339,7 +342,7 @@ const Footer = () => {
                     href="mailto:tusharwork.001@gmail.com"
                     className="text-purple-200 hover:text-pink-400 transition-colors duration-300"
                   >
-                    tusharwork.001@gmail.com
+                    xxxxxxxx.001@gmail.com
                   </a>
                 </motion.div>
 
@@ -379,13 +382,32 @@ const Footer = () => {
                 <span>© {currentYear} Mood Mantra. All Rights Reserved.</span>
               </motion.p>
 
-              <motion.p
-                whileHover={{ scale: 1.02 }}
-                className="flex items-center gap-2 text-purple-200 text-sm mt-4 md:mt-0"
-              >
-                <Heart className="text-pink-400" size={16} />
-                <span>Made with love for better mental health</span>
-              </motion.p>
+              <div className="flex flex-col md:flex-row items-center gap-4 mt-4 md:mt-0">
+                {/* Admin/Doctor Login Button */}
+                {!token && (
+                  <NavLink
+                    to={import.meta.env.VITE_ADMIN_PANEL_URL}
+                    target="_blank"
+                  >
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+                    >
+                      <WordRotate words={["Doctor"]} />
+                      Login
+                    </motion.button>
+                  </NavLink>
+                )}
+
+                <motion.p
+                  whileHover={{ scale: 1.02 }}
+                  className="flex items-center gap-2 text-purple-200 text-sm"
+                >
+                  <Heart className="text-pink-400" size={16} />
+                  <span>Made with love for better mental health</span>
+                </motion.p>
+              </div>
             </div>
           </div>
         </motion.div>
