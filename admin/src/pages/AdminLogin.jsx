@@ -105,17 +105,6 @@ const AdminLogin = () => {
                 "Login as Admin"
               )}
             </button>
-
-            {/* Link to doctor login */}
-            <p className="select-none">
-              Doctor Login? &nbsp;
-              <span
-                onClick={() => navigate("/doctor-login")}
-                className="text-indigo-300 hover:underline cursor-pointer"
-              >
-                Click Here
-              </span>
-            </p>
           </div>
         </div>
       </form>
