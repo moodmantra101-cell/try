@@ -12,6 +12,7 @@ import {
   FaRegHeart,
   FaRegLightbulb,
   FaRegClock,
+  FaTrash,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import {
@@ -112,12 +113,14 @@ const Testimonials = () => {
     },
   ];
 
-  // Fetch testimonials from backend
+  // Fetch testimonials from backend and combine with user's approved testimonial
   const fetchTestimonials = async () => {
     try {
       const data = await getApprovedTestimonials();
+      let formattedTestimonials = [];
+
       if (data && data.length > 0) {
-        const formattedTestimonials = data.map((testimonial, index) => ({
+        formattedTestimonials = data.map((testimonial, index) => ({
           ...testimonial,
           avatar: testimonial.author
             .split(" ")
@@ -127,14 +130,50 @@ const Testimonials = () => {
           color: colorGradients[index % colorGradients.length],
           category: testimonial.category || "Mental Health",
           sessionCount: testimonial.sessionCount || "Multiple sessions",
+          isUserTestimonial: userData && testimonial.userId === userData._id,
         }));
-        setTestimonials(formattedTestimonials);
       } else {
-        setTestimonials(fallbackTestimonials);
+        formattedTestimonials = fallbackTestimonials.map(
+          (testimonial, index) => ({
+            ...testimonial,
+            isUserTestimonial: false,
+          })
+        );
       }
+
+      // If user has an approved testimonial, ensure it's included in the grid
+      if (userTestimonial && userTestimonial.isApproved) {
+        const userTestimonialInGrid = formattedTestimonials.find(
+          (t) => t.userId === userTestimonial.userId
+        );
+
+        if (!userTestimonialInGrid) {
+          // Add user's approved testimonial to the grid if not already present
+          const userTestimonialFormatted = {
+            ...userTestimonial,
+            avatar: userTestimonial.author
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase(),
+            color: colorGradients[0],
+            category: userTestimonial.category || "Mental Health",
+            sessionCount: userTestimonial.sessionCount || "Multiple sessions",
+            isUserTestimonial: true,
+          };
+          formattedTestimonials.unshift(userTestimonialFormatted);
+        }
+      }
+
+      setTestimonials(formattedTestimonials);
     } catch (error) {
       console.error("Error fetching testimonials:", error);
-      setTestimonials(fallbackTestimonials);
+      setTestimonials(
+        fallbackTestimonials.map((testimonial, index) => ({
+          ...testimonial,
+          isUserTestimonial: false,
+        }))
+      );
     } finally {
       setIsLoading(false);
     }
@@ -163,7 +202,7 @@ const Testimonials = () => {
 
   useEffect(() => {
     fetchTestimonials();
-  }, []);
+  }, [userTestimonial]);
 
   useEffect(() => {
     fetchUserTestimonial();
@@ -195,6 +234,8 @@ const Testimonials = () => {
         await deleteTestimonial(userTestimonial._id, userData._id, token);
         setUserTestimonial(null);
         toast.success("Testimonial deleted successfully");
+        // Refresh testimonials to remove from grid
+        fetchTestimonials();
       } catch (error) {
         toast.error(error.message || "Failed to delete testimonial");
       }
@@ -357,12 +398,36 @@ const Testimonials = () => {
               transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
               viewport={{ once: true }}
               whileHover={{ y: -12, scale: 1.02 }}
-              className="group"
+              className="group relative"
             >
               <div
                 className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border border-purple-100 h-full relative overflow-hidden max-w-md"
                 style={{ zIndex: 30 }}
               >
+                {/* User Action Buttons - Only show for user's own testimonial */}
+                {testimonial.isUserTestimonial && (
+                  <div className="absolute top-4 right-4 flex gap-2 z-50">
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={handleEditStory}
+                      className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg transition-colors duration-200"
+                      title="Edit your testimonial"
+                    >
+                      <FaEdit className="text-xs" />
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={handleDeleteStory}
+                      className="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-colors duration-200"
+                      title="Delete your testimonial"
+                    >
+                      <FaTrash className="text-xs" />
+                    </motion.button>
+                  </div>
+                )}
+
                 {/* Enhanced Background Pattern */}
                 <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-50 to-pink-50 rounded-full -translate-y-20 translate-x-20 opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-full translate-y-12 -translate-x-12 opacity-40 group-hover:opacity-60 transition-opacity duration-300" />
@@ -438,18 +503,17 @@ const Testimonials = () => {
                 Loading your story...
               </span>
             </div>
-          ) : userTestimonial ? (
-            // Enhanced User testimonial display
+          ) : userTestimonial && !userTestimonial.isApproved ? (
+            // Show pending testimonial status
             <div className="space-y-4">
               <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-purple-100 max-w-3xl mx-auto relative overflow-hidden">
-                {/* Background decoration */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-50 to-pink-50 rounded-full -translate-y-16 translate-x-16 opacity-50" />
 
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-bold text-gray-900 flex items-center">
                       <FaHeart className="text-pink-500 mr-2" />
-                      Your Story
+                      Your Story (Pending Review)
                     </h3>
                     <div className="flex gap-2">
                       <motion.button
@@ -499,24 +563,17 @@ const Testimonials = () => {
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-gray-500">
                       Status:{" "}
-                      {userTestimonial.isApproved ? (
-                        <span className="text-green-600 font-semibold flex items-center">
-                          <FaCheckCircle className="mr-1" />
-                          Published
-                        </span>
-                      ) : (
-                        <span className="text-yellow-600 font-semibold flex items-center">
-                          <FaRegClock className="mr-1" />
-                          Under Review
-                        </span>
-                      )}
+                      <span className="text-yellow-600 font-semibold flex items-center">
+                        <FaRegClock className="mr-1" />
+                        Under Review
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          ) : (
-            // Enhanced CTA button
+          ) : !userTestimonial ? (
+            // Enhanced CTA button for users without testimonials
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -527,7 +584,7 @@ const Testimonials = () => {
               <span className="text-xl font-bold">Share Your Story</span>
               <FaArrowRight className="ml-3 group-hover:translate-x-1 transition-transform duration-300" />
             </motion.div>
-          )}
+          ) : null}
         </motion.div>
 
         {/* Testimonial Modal */}
