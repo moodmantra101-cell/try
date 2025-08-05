@@ -5,6 +5,20 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import ProgressBar from "../components/ProgressBar";
+import {
+  FaCalendarAlt,
+  FaClock,
+  FaMapMarkerAlt,
+  FaUserMd,
+  FaCreditCard,
+  FaTimes,
+  FaCheckCircle,
+  FaSpinner,
+  FaChevronDown,
+  FaChevronUp,
+  FaHeart,
+  FaStar,
+} from "react-icons/fa";
 
 const MyAppointments = () => {
   const { backendUrl, token, getDoctorsData } = useContext(AppContext);
@@ -200,193 +214,439 @@ const MyAppointments = () => {
     setShowAll(!showAll);
   };
 
+  const getStatusColor = (appointment) => {
+    if (appointment.cancelled) return "from-red-500 to-red-600";
+    if (appointment.isCompleted) return "from-green-500 to-green-600";
+    if (appointment.payment) return "from-blue-500 to-blue-600";
+    return "from-yellow-500 to-yellow-600";
+  };
+
+  const getStatusText = (appointment) => {
+    if (appointment.cancelled) return "Cancelled";
+    if (appointment.isCompleted) return "Completed";
+    if (appointment.payment) return "Paid";
+    return "Pending Payment";
+  };
+
+  const getStatusIcon = (appointment) => {
+    if (appointment.cancelled) return <FaTimes />;
+    if (appointment.isCompleted) return <FaCheckCircle />;
+    if (appointment.payment) return <FaCheckCircle />;
+    return <FaCreditCard />;
+  };
+
   return (
-    <div className="w-full flex flex-col items-center justify-center">
-      <p className="mb-2 md:mb-5 md:mt-8 text-xl md:text-3xl font-medium text-gray-500">
-        My Appointments
-      </p>
-      <div className="w-[90vw] md:w-full md:px-44">
-        {isLoading ? (
-          <div className="flex justify-center items-center min-h-[200px] flex-col">
-            <ProgressBar progress={loadingProgress} />
-          </div>
-        ) : appointments.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
-            No appointments found
-          </div>
-        ) : (
-          <>
-            {(showAll ? appointments : appointments.slice(0, 4)).map(
-              (item, index) => (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-100">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 180, 360],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          className="absolute top-20 left-10 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
+        />
+        <motion.div
+          animate={{
+            scale: [1.2, 1, 1.2],
+            rotate: [360, 180, 0],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          className="absolute top-40 right-20 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
+        />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-16"
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="inline-flex items-center bg-white/90 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg mb-8 border border-purple-100"
+          >
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+            >
+              <FaCalendarAlt className="text-purple-500 text-xl mr-3" />
+            </motion.div>
+            <span className="text-purple-800 font-semibold">
+              Your Appointments
+            </span>
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
+          >
+            Manage Your{" "}
+            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Appointments
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed"
+          >
+            View, manage, and track all your scheduled appointments in one place
+          </motion.p>
+        </motion.div>
+
+        {/* Content Section */}
+        <div className="w-full">
+          {isLoading ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex justify-center items-center min-h-[400px] flex-col"
+            >
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-purple-100">
+                <ProgressBar progress={loadingProgress} />
+                <p className="text-center text-gray-600 mt-4">
+                  Loading your appointments...
+                </p>
+              </div>
+            </motion.div>
+          ) : appointments.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-center py-16"
+            >
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-xl border border-purple-100 max-w-md mx-auto">
                 <motion.div
-                  key={index}
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-6"
+                >
+                  <FaCalendarAlt className="text-white text-3xl" />
+                </motion.div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  No Appointments Yet
+                </h3>
+                <p className="text-gray-600 mb-8">
+                  You haven't scheduled any appointments yet. Start your journey
+                  to better mental health today!
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate("/doctors")}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  Book Your First Appointment
+                </motion.button>
+              </div>
+            </motion.div>
+          ) : (
+            <>
+              <div className="grid gap-6">
+                {(showAll ? appointments : appointments.slice(0, 4)).map(
+                  (item, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: index * 0.1 }}
+                      whileHover={{ y: -5 }}
+                      className="group"
+                    >
+                      <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-purple-100 hover:shadow-2xl transition-all duration-300">
+                        <div className="flex flex-col lg:flex-row gap-8">
+                          {/* Doctor Profile Section */}
+                          <div className="flex-shrink-0">
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              className="relative"
+                            >
+                              <img
+                                className="w-48 h-48 object-cover rounded-2xl shadow-lg border-4 border-white"
+                                draggable="false"
+                                src={item.docData.image}
+                                alt="doctor photo"
+                              />
+                              <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+                                <FaStar className="text-white text-sm" />
+                              </div>
+                            </motion.div>
+                          </div>
+
+                          {/* Appointment Details */}
+                          <div className="flex-1">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              {/* Doctor Info */}
+                              <div className="space-y-4">
+                                <div>
+                                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                                    {item.docData.name}
+                                  </h3>
+                                  <div className="flex items-center gap-2 text-purple-600 font-semibold">
+                                    <FaUserMd className="text-lg" />
+                                    <span>{item.docData.speciality}</span>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-3 text-gray-600">
+                                    <FaMapMarkerAlt className="text-purple-500" />
+                                    <div>
+                                      <p className="font-medium">
+                                        {item.docData.address.line1}
+                                      </p>
+                                      <p className="text-sm">
+                                        {item.docData.address.line2}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-3 text-gray-600">
+                                    <FaCalendarAlt className="text-purple-500" />
+                                    <span className="font-medium">
+                                      {slotDateFormat(item.slotDate)}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center gap-3 text-gray-600">
+                                    <FaClock className="text-purple-500" />
+                                    <span className="font-medium">
+                                      {item.slotTime}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Additional Details */}
+                              <div className="space-y-4">
+                                {item.reasonForVisit && (
+                                  <div className="bg-purple-50 rounded-xl p-4 border border-purple-100">
+                                    <h4 className="font-semibold text-purple-800 mb-2">
+                                      Reason for Visit
+                                    </h4>
+                                    <p className="text-gray-700">
+                                      {item.reasonForVisit}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {item.sessionType && (
+                                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                                    <h4 className="font-semibold text-blue-800 mb-2">
+                                      Session Details
+                                    </h4>
+                                    <p className="text-gray-700">
+                                      {item.sessionType}
+                                      {item.communicationMethod && (
+                                        <span className="text-blue-600">
+                                          {" "}
+                                          • {item.communicationMethod}
+                                        </span>
+                                      )}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {item.briefNotes && (
+                                  <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+                                    <h4 className="font-semibold text-green-800 mb-2">
+                                      Notes
+                                    </h4>
+                                    <p className="text-gray-700">
+                                      {item.briefNotes}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Status and Actions */}
+                          <div className="flex flex-col gap-4 items-center justify-center">
+                            {/* Status Badge */}
+                            <motion.div
+                              initial={{ scale: 0.8 }}
+                              animate={{ scale: 1 }}
+                              className={`px-6 py-3 rounded-full text-white font-semibold bg-gradient-to-r ${getStatusColor(
+                                item
+                              )} shadow-lg flex items-center gap-2`}
+                            >
+                              {getStatusIcon(item)}
+                              {getStatusText(item)}
+                            </motion.div>
+
+                            {/* Action Buttons */}
+                            <div className="flex flex-col gap-3 w-full max-w-xs">
+                              {!item.cancelled &&
+                                item.payment &&
+                                !item.isCompleted && (
+                                  <motion.button
+                                    className={`text-sm tracking-wider w-full px-4 py-3 border border-green-600 rounded-xl cursor-not-allowed bg-green-50 text-green-600 font-semibold ${
+                                      !animatedAppointments.has(item._id)
+                                        ? "motion-preset-confetti motion-duration-2000"
+                                        : ""
+                                    }`}
+                                    onAnimationEnd={() => {
+                                      if (!animatedAppointments.has(item._id)) {
+                                        setAnimatedAppointments(
+                                          (prev) => new Set([...prev, item._id])
+                                        );
+                                      }
+                                    }}
+                                    whileHover={{ scale: 1.02 }}
+                                  >
+                                    <FaCheckCircle className="inline mr-2" />
+                                    Paid
+                                  </motion.button>
+                                )}
+
+                              {!item.cancelled &&
+                                !item.payment &&
+                                !item.isCompleted && (
+                                  <motion.button
+                                    onClick={() =>
+                                      appointmentRazorpay(item._id)
+                                    }
+                                    className={`text-sm text-center w-full px-4 py-3 border rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold transition-all duration-200 ease-in-out ${
+                                      loadingPayment[item._id]
+                                        ? "opacity-50 cursor-not-allowed flex items-center justify-center gap-3"
+                                        : "hover:shadow-lg active:scale-[95%]"
+                                    }`}
+                                    disabled={loadingPayment[item._id]}
+                                    whileHover={
+                                      !loadingPayment[item._id]
+                                        ? { scale: 1.02 }
+                                        : {}
+                                    }
+                                    whileTap={
+                                      !loadingPayment[item._id]
+                                        ? { scale: 0.98 }
+                                        : {}
+                                    }
+                                  >
+                                    {loadingPayment[item._id] ? (
+                                      <>
+                                        <FaSpinner className="animate-spin" />
+                                        Processing...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaCreditCard className="inline mr-2" />
+                                        Pay Online
+                                      </>
+                                    )}
+                                  </motion.button>
+                                )}
+
+                              {!item.cancelled && !item.isCompleted && (
+                                <motion.button
+                                  onClick={() => cancelAppointment(item._id)}
+                                  className={`text-sm text-stone-600 text-center w-full px-4 py-3 border border-stone-500 rounded-xl transition-all duration-200 ease-in-out font-semibold ${
+                                    loadingCancel[item._id]
+                                      ? "opacity-60 cursor-not-allowed flex items-center justify-center gap-3"
+                                      : "hover:border-transparent hover:bg-red-600 hover:text-white active:scale-[95%]"
+                                  }`}
+                                  disabled={loadingCancel[item._id]}
+                                  whileHover={
+                                    !loadingCancel[item._id]
+                                      ? { scale: 1.02 }
+                                      : {}
+                                  }
+                                  whileTap={
+                                    !loadingCancel[item._id]
+                                      ? { scale: 0.98 }
+                                      : {}
+                                  }
+                                >
+                                  {loadingCancel[item._id] ? (
+                                    <>
+                                      <FaSpinner className="animate-spin" />
+                                      Cancelling...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <FaTimes className="inline mr-2" />
+                                      Cancel Appointment
+                                    </>
+                                  )}
+                                </motion.button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )
+                )}
+              </div>
+
+              {/* Show All/Less Button */}
+              {appointments.length > 4 && (
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className="flex flex-col md:flex-row gap-2.5 items-center sm:items-end justify-between p-5 md:p-7 bg-gray-50 border border-gray-200 my-2 rounded-md mb-5"
+                  transition={{ delay: 0.5, duration: 0.6 }}
+                  className="w-full flex justify-center mt-8"
                 >
-                  {/* booking info */}
-                  <div className="w-full flex flex-col items-stretch md:flex-row gap-4">
-                    {/* doctor profile */}
-                    <div className="flex justify-center">
-                      <img
-                        className="w-56 sm:w-44 bg-indigo-100 rounded-md border border-primary/30"
-                        draggable="false"
-                        src={item.docData.image}
-                        alt="doctor photo"
-                      />
-                    </div>
-
-                    {/* appointment info */}
-                    <div className="text-base text-zinc-600 text-center md:text-start">
-                      <p className="text-neutral-800 font-semibold">
-                        {item.docData.name}
-                      </p>
-                      <p>{item.docData.speciality}</p>
-                      <p className="text-zinc-700 font-medium mt-2">Address:</p>
-                      <p className="text-sm">{item.docData.address.line1}</p>
-                      <p className="text-sm">{item.docData.address.line2}</p>
-                      <p className="mt-2">
-                        <span className="text-sm text-neutral-700 font-medium">
-                          Date & Time: &nbsp;
-                        </span>
-                        <br />
-                        {slotDateFormat(item.slotDate)} - {item.slotTime}
-                      </p>
-
-                      {/* New appointment details */}
-                      {item.reasonForVisit && (
-                        <div className="mt-3">
-                          <p className="text-sm text-neutral-700 font-medium">
-                            Reason:{" "}
-                            <span className="font-normal">
-                              {item.reasonForVisit}
-                            </span>
-                          </p>
-                        </div>
-                      )}
-
-                      {item.sessionType && (
-                        <div className="mt-1">
-                          <p className="text-sm text-neutral-700 font-medium">
-                            Session Type:{" "}
-                            <span className="font-normal">
-                              {item.sessionType}
-                            </span>
-                            {item.communicationMethod && (
-                              <span className="font-normal">
-                                {" "}
-                                ({item.communicationMethod})
-                              </span>
-                            )}
-                          </p>
-                        </div>
-                      )}
-
-                      {item.briefNotes && (
-                        <div className="mt-1">
-                          <p className="text-sm text-neutral-700 font-medium">
-                            Notes:{" "}
-                            <span className="font-normal">
-                              {item.briefNotes}
-                            </span>
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* for making the design dynamic */}
-                  <div></div>
-
-                  {/* cta buttons */}
-                  <div className="flex flex-col gap-2 items-center justify-center">
-                    {!item.cancelled && item.payment && !item.isCompleted && (
-                      <button
-                        className={`text-sm tracking-wider min-w-48 px-2.5 py-2.5 md:px-4 md:py-3 border border-green-600 rounded cursor-not-allowed bg-green-50 text-green-600 ${
-                          !animatedAppointments.has(item._id)
-                            ? "motion-preset-confetti motion-duration-2000"
-                            : ""
-                        }`}
-                        onAnimationEnd={() => {
-                          if (!animatedAppointments.has(item._id)) {
-                            setAnimatedAppointments(
-                              (prev) => new Set([...prev, item._id])
-                            );
-                          }
-                        }}
-                      >
-                        Paid
-                      </button>
+                  <motion.button
+                    onClick={toggleShowAll}
+                    className="bg-white/80 backdrop-blur-sm hover:bg-white text-purple-600 px-8 py-4 rounded-full text-lg font-semibold shadow-xl border border-purple-100 transition-all duration-300 flex items-center gap-3"
+                    whileHover={{
+                      scale: 1.05,
+                      boxShadow: "0 20px 25px -5px rgba(124, 58, 237, 0.3)",
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {showAll ? (
+                      <>
+                        <FaChevronUp />
+                        Show Less
+                      </>
+                    ) : (
+                      <>
+                        <FaChevronDown />
+                        Show All ({appointments.length} appointments)
+                      </>
                     )}
-                    {!item.cancelled && !item.payment && !item.isCompleted && (
-                      <button
-                        onClick={() => appointmentRazorpay(item._id)}
-                        className={`text-sm text-center min-w-48 px-2.5 py-2.5 md:px-4 md:py-3 border rounded bg-primary text-white transition-all duration-200 ease-in-out ${
-                          loadingPayment[item._id]
-                            ? "opacity-50 cursor-not-allowed flex items-center justify-center gap-3"
-                            : "hover:opacity-90 active:scale-[90%]"
-                        }`}
-                        disabled={loadingPayment[item._id]}
-                      >
-                        <span className="select-none">
-                          {loadingPayment[item._id]
-                            ? "Processing..."
-                            : "Pay Online"}
-                        </span>
-                        {loadingPayment[item._id] && (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        )}
-                      </button>
-                    )}
-                    {!item.cancelled && !item.isCompleted && (
-                      <button
-                        onClick={() => cancelAppointment(item._id)}
-                        className={`text-sm text-stone-600 text-center min-w-48 px-2.5 py-2.5 md:px-4 md:py-3 border border-stone-500 rounded transition-all duration-200 ease-in-out ${
-                          loadingCancel[item._id]
-                            ? "opacity-60 cursor-not-allowed flex items-center justify-center gap-3"
-                            : "hover:border-transparent hover:bg-red-600 hover:text-white active:scale-[90%]"
-                        }`}
-                        disabled={loadingCancel[item._id]}
-                      >
-                        <span className="select-none">
-                          {loadingCancel[item._id]
-                            ? "Cancelling..."
-                            : "Cancel Appointment"}
-                        </span>
-                        {loadingCancel[item._id] && (
-                          <div className="w-4 h-4 border-2 border-stone-500 border-t-transparent rounded-full animate-spin"></div>
-                        )}
-                      </button>
-                    )}
-                    {item.cancelled && (
-                      <button className="text-sm tracking-wider min-w-48 px-2.5 py-2.5 md:px-4 md:py-3 border border-red-300 rounded cursor-not-allowed bg-red-50 text-red-500 transition-all duration-200 ease-in-out">
-                        Cancelled
-                      </button>
-                    )}
-                    {!item.cancelled && item.isCompleted && (
-                      <button className="text-sm tracking-wider min-w-48 px-2.5 py-2.5 md:px-4 md:py-3 border border-green-300 rounded cursor-not-allowed bg-green-50 text-green-500 transition-all duration-200 ease-in-out">
-                        Completed
-                      </button>
-                    )}
-                  </div>
+                  </motion.button>
                 </motion.div>
-              )
-            )}
-            {/* show all/less button */}
-            {appointments.length > 4 && (
-              <div className="w-full flex justify-center">
-                <button
-                  onClick={toggleShowAll}
-                  className="text-sm text-center min-w-32 px-2.5 py-2.5 md:px-4 md:py-3 border border-primary rounded-md bg-primary text-white hover:shadow-lg hover:opacity-95 active:scale-[90%] transition-all duration-150 ease-in"
-                >
-                  {showAll ? "Show Less" : "Show All"}
-                </button>
-              </div>
-            )}
-          </>
-        )}
+              )}
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Floating Action Button */}
+      <motion.button
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1, duration: 0.5 }}
+        className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:shadow-purple-500/25 transition-all duration-300"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => navigate("/doctors")}
+      >
+        <FaHeart className="text-xl" />
+      </motion.button>
     </div>
   );
 };

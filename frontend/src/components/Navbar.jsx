@@ -117,7 +117,7 @@ const Navbar = () => {
               { path: "/doctors", label: "EXPERTS" },
               { path: "/ourTeam", label: "OUR TEAM" },
               ...(token
-                ? [{ path: "/assessments", label: "ASSESSMENTS" }]
+                ? [{ path: "/mood-analysis", label: "ASSESSMENTS" }]
                 : []),
               { path: "/about", label: "ABOUT" },
               { path: "/contact", label: "CONTACT" },

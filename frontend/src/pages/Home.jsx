@@ -196,11 +196,11 @@ const Home = () => {
                     backgroundColor: "#f8fafc",
                   }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate("/services")}
+                  onClick={() => navigate("/moodtracker")}
                   className="bg-white/80 backdrop-blur-sm hover:bg-white text-purple-600 px-8 py-4 rounded-full text-lg font-semibold shadow-xl border border-purple-100 transition-all duration-300 flex items-center justify-center gap-2"
                 >
                   <FaPlay className="text-sm" />
-                  Learn More
+                  MOOD TRACKER
                 </motion.button>
               </motion.div>
 
