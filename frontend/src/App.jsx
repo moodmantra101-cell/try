@@ -121,10 +121,7 @@ const App = () => {
             {/* MOOD ANALYZER routes */}
 
             <Route path="/moodtracker" element={<MoodTracker />} />
-            <Route path="/child" element={<Child />} />
-            <Route path="/couples" element={<Couples />} />
-            <Route path="/family" element={<Family />} />
-            <Route path="/individual" element={<Individual />} />
+           
 
             <Route path="/result" element={<Result />} />
             <Route path="/resources" element={<Resources />} />

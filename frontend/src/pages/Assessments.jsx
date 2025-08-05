@@ -1,9 +1,9 @@
- import React, { useContext, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { AppContext } from '../context/AppContext';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { motion } from 'framer-motion';
+import React, { useContext, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { AppContext } from "../context/AppContext";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { motion } from "framer-motion";
 
 const Assessments = () => {
   const { userData, backendUrl, token } = useContext(AppContext);
@@ -17,7 +17,9 @@ const Assessments = () => {
         setAssessments(data);
         setLoading(false);
       } catch (error) {
-        toast.error(error.response?.data?.message || 'Failed to load assessments');
+        toast.error(
+          error.response?.data?.message || "Failed to load assessments"
+        );
         setLoading(false);
       }
     };
@@ -50,7 +52,7 @@ const Assessments = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       {/* Hero Section */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -60,14 +62,38 @@ const Assessments = () => {
           Mental Health Assessments
         </h1>
         <p className="text-xl text-purple-700 mb-8">
-          Take one of our self-assessment quizzes to evaluate your mental health status and get personalized recommendations.
+          Take one of our self-assessment quizzes to evaluate your mental health
+          status and get personalized recommendations.
         </p>
+        {!token && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 max-w-2xl mx-auto">
+            <div className="flex items-center justify-center">
+              <svg
+                className="w-5 h-5 text-blue-600 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p className="text-blue-800 font-medium">
+                Login to save your assessment results and track your progress
+                over time
+              </p>
+            </div>
+          </div>
+        )}
         <div className="w-20 h-1 bg-purple-400 mx-auto rounded-full"></div>
       </motion.div>
 
       {/* Assessments Grid */}
       <div className="max-w-7xl mx-auto">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ staggerChildren: 0.1 }}
@@ -85,25 +111,27 @@ const Assessments = () => {
               <div className="p-6">
                 <div className="flex items-center mb-4">
                   <div className="p-3 rounded-lg bg-purple-100 mr-4">
-                    <svg 
-                      className="w-6 h-6 text-purple-600" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24" 
+                    <svg
+                      className="w-6 h-6 text-purple-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2" 
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
                         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                       ></path>
                     </svg>
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-800">{assessment.title}</h2>
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    {assessment.title}
+                  </h2>
                 </div>
                 <p className="text-gray-600 mb-6">{assessment.description}</p>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
                     {assessment.questions.length} questions
@@ -135,17 +163,17 @@ const Assessments = () => {
               className="inline-flex items-center text-lg text-purple-600 font-medium hover:text-purple-800 transition-colors duration-300"
             >
               View your assessment history
-              <svg 
-                className="w-5 h-5 ml-2" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24" 
+              <svg
+                className="w-5 h-5 ml-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth="2" 
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
                   d="M14 5l7 7m0 0l-7 7m7-7H3"
                 ></path>
               </svg>

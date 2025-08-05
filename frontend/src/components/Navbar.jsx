@@ -106,7 +106,6 @@ const Navbar = () => {
               alt="Logo"
               className="h-10 lg:h-12 transition-all duration-300"
             />
-          
           </motion.div>
 
           {/* Navigation Links */}
@@ -116,11 +115,9 @@ const Navbar = () => {
               { path: "/services", label: "SERVICES" },
               { path: "/doctors", label: "EXPERTS" },
               { path: "/ourTeam", label: "OUR TEAM" },
-              ...(token
-                ? [{ path: "/mood-analysis", label: "ASSESSMENTS" }]
-                : []),
+              { path: "/mood-analysis", label: "ASSESSMENT" },
               { path: "/about", label: "ABOUT" },
-              { path: "/contact", label: "CONTACT" },
+              
             ].map((link) => (
               <NavLink key={link.path} to={link.path}>
                 <motion.div whileHover={{ y: -2 }} className="relative group">
@@ -329,9 +326,7 @@ const Navbar = () => {
                 {[
                   { path: "/", label: "Home" },
                   { path: "/doctors", label: "All Doctors" },
-                  ...(token
-                    ? [{ path: "/assessments", label: "Self-Assessment" }]
-                    : []),
+                  { path: "/mood-analysis", label: "Assessment" },
                   { path: "/about", label: "About" },
                   { path: "/contact", label: "Contact" },
                 ].map((link) => (
