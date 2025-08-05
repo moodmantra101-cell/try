@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaStar, FaTimes, FaUser, FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from "react-toastify";
@@ -134,7 +135,7 @@ const TestimonialModal = ({ isOpen, onClose, existingTestimonial = null }) => {
     );
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -142,7 +143,7 @@ const TestimonialModal = ({ isOpen, onClose, existingTestimonial = null }) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
-          style={{ zIndex: 9999, position: "fixed" }}
+          style={{ zIndex: 99999 }}
           onClick={onClose}
         >
           <motion.div
@@ -150,7 +151,7 @@ const TestimonialModal = ({ isOpen, onClose, existingTestimonial = null }) => {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative"
-            style={{ zIndex: 10000, position: "relative" }}
+            style={{ zIndex: 100000 }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -282,7 +283,8 @@ const TestimonialModal = ({ isOpen, onClose, existingTestimonial = null }) => {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 
