@@ -10,7 +10,8 @@ import { clearAllTokens } from "../utils/tokenUtils";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { token, setToken, userData } = useContext(AppContext);
+  const { token, setToken, userData, isLoadingUser } = useContext(AppContext);
+
   const [showMenu, setShowMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [activeLink, setActiveLink] = useState("");
@@ -147,18 +148,29 @@ const Navbar = () => {
 
           {/* Auth Buttons/Profile */}
           <div className="flex items-center space-x-4">
-            {token && userData ? (
+            {token ? (
               <div className="relative profile-menu-container">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   className="flex items-center gap-2 cursor-pointer p-2 rounded-full hover:bg-white/50 transition-all duration-300"
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                 >
-                  <img
-                    className="w-8 h-8 rounded-full object-cover border-2 border-purple-200"
-                    src={userData.image}
-                    alt="profile"
-                  />
+                  {userData ? (
+                    <img
+                      className="w-8 h-8 rounded-full object-cover border-2 border-purple-200"
+                      src={userData.image || "profile_pic.png"}
+                      alt="profile"
+                      onError={(e) => {
+                        e.target.src = "profile_pic.png";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center">
+                      <span className="text-purple-600 text-sm font-medium">
+                        {isLoadingUser ? "..." : "U"}
+                      </span>
+                    </div>
+                  )}
                   <ChevronDown
                     size={16}
                     className={`text-purple-600 transition-transform duration-300 ${
@@ -199,19 +211,17 @@ const Navbar = () => {
                             My Appointments
                           </span>
                         </motion.div>
-                        <motion.a
+                        <motion.div
                           whileHover={{
                             backgroundColor: "rgba(124, 58, 237, 0.1)",
                           }}
-                          href="https://moodmantra.com/"
-                          target="_blank"
-                          rel="noopener noreferrer"
+                          onClick={() => navigate("my-appointments")}
                           className="flex items-center px-3 py-2 rounded-xl cursor-pointer transition-all duration-200"
                         >
                           <span className="text-gray-700 font-medium">
                             Self-Help Resources
                           </span>
-                        </motion.a>
+                        </motion.div>
                         <div className="border-t border-purple-100 my-2" />
                         <motion.div
                           whileHover={{

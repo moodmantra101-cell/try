@@ -119,7 +119,7 @@ const loginUser = async (req, res) => {
 // api to get user profile data
 const getProfile = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user.id;
     const userData = await userModel.findById(userId).select("-password");
     res.status(201).json({ success: true, userData });
   } catch (error) {
@@ -131,7 +131,8 @@ const getProfile = async (req, res) => {
 //  Api to update User profile
 const updateProfile = async (req, res) => {
   try {
-    const { userId, name, phone, address, dob, gender } = req.body;
+    const userId = req.user.id;
+    const { name, phone, address, dob, gender } = req.body;
     const imageFile = req.file;
 
     if (!name || !phone || !dob || !gender) {
@@ -168,8 +169,8 @@ const updateProfile = async (req, res) => {
 // API to book appointment
 const bookAppointment = async (req, res) => {
   try {
+    const userId = req.user.id;
     const {
-      userId,
       docId,
       slotDate,
       slotTime,
@@ -190,12 +191,10 @@ const bookAppointment = async (req, res) => {
 
     // Validate session type and communication method
     if (sessionType === "Online" && !communicationMethod) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Please select communication method for online sessions!",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Please select communication method for online sessions!",
+      });
     }
 
     const docData = await doctorModel.findById(docId).select("-password");
@@ -259,7 +258,7 @@ const bookAppointment = async (req, res) => {
 // Api to get user Appointments for frontend my appointments page
 const listAppointment = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user.id;
     const appointments = await appointmentModel.find({ userId });
     res.status(201).json({ success: true, appointments });
   } catch (error) {
@@ -271,7 +270,8 @@ const listAppointment = async (req, res) => {
 // Api to Cancel Appointment
 const cancelAppointment = async (req, res) => {
   try {
-    const { userId, appointmentId } = req.body;
+    const userId = req.user.id;
+    const { appointmentId } = req.body;
     const appointmentData = await appointmentModel.findById(appointmentId);
     // verify appointment user
     if (appointmentData.userId !== userId) {

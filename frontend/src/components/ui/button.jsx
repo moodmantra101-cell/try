@@ -49,7 +49,7 @@ const Button = forwardRef(
         "bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-lg hover:bg-white/30 hover:shadow-xl hover:shadow-white/20",
     };
 
-    const MotionButton = motion(Comp);
+    const MotionButton = motion.create(Comp);
 
     const buttonProps = {
       className: `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`,

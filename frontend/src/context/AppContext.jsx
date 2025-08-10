@@ -13,6 +13,7 @@ const AppContextProvider = ({ children }) => {
   const [doctors, setDoctors] = useState([]);
   const [token, setToken] = useState(getValidToken());
   const [userData, setUserData] = useState(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(false);
 
   const getDoctorsData = async () => {
     try {
@@ -30,16 +31,20 @@ const AppContextProvider = ({ children }) => {
 
   const loadUserProfileData = async () => {
     if (!token) {
+      setUserData(null);
+      setIsLoadingUser(false);
       return;
     }
+    setIsLoadingUser(true);
     try {
       const { data } = await axios.get(`${backendUrl}/api/user/get-profile`, {
         headers: { token },
       });
       if (data.success) {
         setUserData(data.userData);
+        setIsLoadingUser(false);
       } else {
-        toast.error(data.message);
+        console.error("Failed to load user data:", data.message);
         // If the server says the token is invalid, clear it
         if (
           data.message.includes("Invalid token") ||
@@ -47,17 +52,25 @@ const AppContextProvider = ({ children }) => {
         ) {
           clearAllTokens();
           setToken(null);
+          setUserData(null);
+          setIsLoadingUser(false);
         }
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error loading user profile:", error);
       // If we get a 401 error, the token is invalid
       if (error.response?.status === 401) {
         clearAllTokens();
         setToken(null);
+        setUserData(null);
+        setIsLoadingUser(false);
         toast.error("Session expired. Please login again.");
       } else {
-        toast.error(error.response?.data?.message || error.message);
+        console.error(
+          "Profile loading error:",
+          error.response?.data?.message || error.message
+        );
+        setIsLoadingUser(false);
       }
     }
   };
@@ -84,6 +97,7 @@ const AppContextProvider = ({ children }) => {
     userData,
     setUserData,
     loadUserProfileData,
+    isLoadingUser,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
