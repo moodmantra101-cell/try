@@ -1,5 +1,5 @@
 import axios from "axios";
-import { createContext, useState, useContext } from "react";  // Added useContext here
+import { createContext, useState, useContext } from "react"; // Added useContext here
 import { toast } from "react-toastify";
 
 export const AdminContext = createContext();
@@ -8,7 +8,7 @@ export const AdminContext = createContext();
 export const useAuth = () => {
   const context = useContext(AdminContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AdminProvider');
+    throw new Error("useAuth must be used within an AdminProvider");
   }
   return context;
 };
@@ -23,6 +23,8 @@ const AdminContextProvider = (props) => {
   const [doctors, setDoctors] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [dashData, setDashData] = useState(false);
+  const [pendingPosts, setPendingPosts] = useState([]);
+  const [pendingPostsCount, setPendingPostsCount] = useState(0);
 
   const getAllDoctors = async () => {
     try {
@@ -113,6 +115,49 @@ const AdminContextProvider = (props) => {
     }
   };
 
+  // Blog post management functions
+  const getPendingBlogPosts = async () => {
+    try {
+      const { data } = await axios.get(
+        backendUrl + "/api/blog-posts/admin/pending",
+        { headers: { aToken } }
+      );
+      if (data.success) {
+        setPendingPosts(data.data.posts);
+        setPendingPostsCount(data.data.pagination.totalPosts);
+        console.log(data.data.posts);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const reviewBlogPost = async (
+    postId,
+    status,
+    adminNotes,
+    isFeatured = false
+  ) => {
+    try {
+      const { data } = await axios.put(
+        backendUrl + `/api/blog-posts/admin/${postId}/review`,
+        { status, adminNotes, isFeatured },
+        { headers: { aToken } }
+      );
+      if (data.success) {
+        toast.success(data.message);
+        getPendingBlogPosts(); // Refresh the list
+        getDashData(); // Update dashboard data
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   const value = {
     aToken,
     setAtoken,
@@ -126,6 +171,10 @@ const AdminContextProvider = (props) => {
     cancelAppointment,
     dashData,
     getDashData,
+    pendingPosts,
+    pendingPostsCount,
+    getPendingBlogPosts,
+    reviewBlogPost,
   };
 
   return (
@@ -134,7 +183,5 @@ const AdminContextProvider = (props) => {
     </AdminContext.Provider>
   );
 };
-
- 
 
 export default AdminContextProvider;

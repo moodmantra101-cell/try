@@ -115,6 +115,7 @@ const Navbar = () => {
               { path: "/services", label: "SERVICES" },
               { path: "/doctors", label: "EXPERTS" },
               { path: "/ourTeam", label: "OUR TEAM" },
+               { path: "/moodtracker", label: "MOOD TRACKER" },
               { path: "/mood-analysis", label: "ASSESSMENT" },
               { path: "/about", label: "ABOUT" },
             ].map((link) => (

@@ -9,6 +9,8 @@ import doctorRouter from "./routes/doctorRoute.js";
 import userRouter from "./routes/userRoute.js";
 import assessmentRouter from "./routes/assessmentRoute.js";
 import testimonialRouter from "./routes/testimonialRoute.js";
+import blogPostRouter from "./routes/blogPostRoute.js";
+import uploadRouter from "./routes/uploadRoute.js";
 
 // -------- app config ----------
 const app = express();
@@ -20,15 +22,24 @@ connectCloudinary();
 app.use(express.json({ limit: "400mb" }));
 app.use(cors());
 
+// Serve uploaded files
+app.use("/uploads", express.static("uploads"));
+
 // ------ api endpoints ------
 app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
 app.use("/api/user", userRouter);
 app.use("/api/assessments", assessmentRouter);
 app.use("/api/testimonials", testimonialRouter);
+app.use("/api/blog-posts", blogPostRouter);
+app.use("/api/upload", uploadRouter);
 
 app.get("/", (req, res) => {
   res.send("API WORKING...");
+});
+
+app.get("/test", (req, res) => {
+  res.json({ message: "Backend server is running!" });
 });
 
 // -------- port listen -------

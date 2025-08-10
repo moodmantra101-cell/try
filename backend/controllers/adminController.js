@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
 import userModel from "../models/userModel.js";
 import PDFDocument from "pdfkit";
+import blogPostModel from "../models/blogPostModel.js";
 
 // Api for adding Doctor
 const addDoctor = async (req, res) => {
@@ -185,11 +186,15 @@ const adminDashboard = async (req, res) => {
     const doctors = await doctorModel.find({});
     const users = await userModel.find({});
     const appointments = await appointmentModel.find({});
+    const pendingPosts = await blogPostModel.countDocuments({
+      status: "pending",
+    });
 
     const dashData = {
       doctors: doctors.length,
       appointments: appointments.length,
       patients: users.length,
+      pendingPosts: pendingPosts,
       latestAppointments: appointments.reverse().slice(0, 5),
     };
 
