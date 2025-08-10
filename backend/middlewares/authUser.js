@@ -35,6 +35,11 @@ const authUser = async (req, res, next) => {
         success: false,
         message: "Invalid token",
       });
+    } else if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Token expired",
+      });
     }
     res.status(500).json({ success: false, message: error.message });
   }

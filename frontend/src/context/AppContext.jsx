@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { getValidToken, clearAllTokens } from "../utils/tokenUtils";
 
 export const AppContext = createContext();
 
@@ -10,7 +11,7 @@ const AppContextProvider = ({ children }) => {
     import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
   const [doctors, setDoctors] = useState([]);
-  const [token, setToken] = useState(localStorage.getItem("token") || null);
+  const [token, setToken] = useState(getValidToken());
   const [userData, setUserData] = useState(null);
 
   const getDoctorsData = async () => {
@@ -29,7 +30,6 @@ const AppContextProvider = ({ children }) => {
 
   const loadUserProfileData = async () => {
     if (!token) {
-      localStorage.removeItem("token"); // Clear any invalid token
       return;
     }
     try {
@@ -40,10 +40,25 @@ const AppContextProvider = ({ children }) => {
         setUserData(data.userData);
       } else {
         toast.error(data.message);
+        // If the server says the token is invalid, clear it
+        if (
+          data.message.includes("Invalid token") ||
+          data.message.includes("Not Authorized")
+        ) {
+          clearAllTokens();
+          setToken(null);
+        }
       }
     } catch (error) {
       console.error(error);
-      toast.error(error.response?.data?.message || error.message);
+      // If we get a 401 error, the token is invalid
+      if (error.response?.status === 401) {
+        clearAllTokens();
+        setToken(null);
+        toast.error("Session expired. Please login again.");
+      } else {
+        toast.error(error.response?.data?.message || error.message);
+      }
     }
   };
 

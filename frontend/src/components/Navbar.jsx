@@ -6,6 +6,7 @@ import { AppContext } from "../context/AppContext";
 import { toast } from "react-toastify";
 import { WordRotate } from "./WordRotateComp";
 import { motion, AnimatePresence } from "framer-motion";
+import { clearAllTokens } from "../utils/tokenUtils";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -15,8 +16,8 @@ const Navbar = () => {
   const [activeLink, setActiveLink] = useState("");
 
   const logout = () => {
-    setToken(false);
-    localStorage.removeItem("token");
+    setToken(null);
+    clearAllTokens();
     toast.info("Logged Out.");
   };
 
@@ -115,7 +116,7 @@ const Navbar = () => {
               { path: "/services", label: "SERVICES" },
               { path: "/doctors", label: "EXPERTS" },
               { path: "/ourTeam", label: "OUR TEAM" },
-               { path: "/moodtracker", label: "MOOD TRACKER" },
+              { path: "/moodtracker", label: "MOOD TRACKER" },
               { path: "/mood-analysis", label: "ASSESSMENT" },
               { path: "/about", label: "ABOUT" },
             ].map((link) => (

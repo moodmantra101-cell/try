@@ -57,6 +57,12 @@ export const assets = {
   upload_icon,
   stripe_logo,
   razorpay_logo,
+  Dermatologist,
+  Gastroenterologist,
+  General_physician,
+  Gynecologist,
+  Neurologist,
+  Pediatricians,
 };
 
 export const specialityData = [

@@ -121,7 +121,6 @@ const App = () => {
             {/* MOOD ANALYZER routes */}
 
             <Route path="/moodtracker" element={<MoodTracker />} />
-           
 
             <Route path="/result" element={<Result />} />
             <Route path="/resources" element={<Resources />} />
