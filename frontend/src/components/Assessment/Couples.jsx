@@ -7,7 +7,7 @@ import { Label } from "../ui/label";
 import { Progress } from "../ui/progress";
 import { Heart, ArrowLeft, BookOpen, ChevronRight } from "lucide-react";
 
-const questions = [
+ const questions = [
   {
     id: 1,
     text: "How often do you and your partner communicate openly about your feelings?",
@@ -32,6 +32,32 @@ const questions = [
     id: 5,
     text: "How often do arguments lead to better understanding?",
     category: "conflict",
+  },
+  {
+    id: 6,
+    text: "Do you and your partner share common goals for the future?",
+    category: "alignment",
+  },
+  {
+    id: 7,
+    text: "How often do you feel emotionally disconnected from your partner?",
+    category: "emotional intimacy",
+    reverse: true,
+  },
+  {
+    id: 8,
+    text: "Do you feel appreciated and valued in the relationship?",
+    category: "appreciation",
+  },
+  {
+    id: 9,
+    text: "How often do you engage in activities or hobbies together?",
+    category: "shared experiences",
+  },
+  {
+    id: 10,
+    text: "Do you feel your partner respects your personal boundaries?",
+    category: "respect",
   },
 ];
 

@@ -102,7 +102,7 @@ const App = () => {
             />
 
             {/* Assessment routes */}
-            <Route path="/assessments" element={<Assessments />} />
+            <Route path="/individual" element={<Assessments />} />
             <Route path="/assessment/:id" element={<Assessment />} />
             <Route path="/my-assessments" element={<MyAssessments />} />
             <Route

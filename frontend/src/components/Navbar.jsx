@@ -215,7 +215,7 @@ const Navbar = () => {
                           whileHover={{
                             backgroundColor: "rgba(124, 58, 237, 0.1)",
                           }}
-                          onClick={() => navigate("my-appointments")}
+                          onClick={() => navigate("resources")}
                           className="flex items-center px-3 py-2 rounded-xl cursor-pointer transition-all duration-200"
                         >
                           <span className="text-gray-700 font-medium">

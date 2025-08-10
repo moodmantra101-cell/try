@@ -7,7 +7,8 @@ import { Label } from "../ui/label";
 import { Progress } from "../ui/progress";
 import { Brain, ArrowLeft, BookOpen, ChevronRight } from "lucide-react";
 
-const questions = [
+ const questions = [
+  // Original questions
   {
     id: 1,
     text: "Feeling nervous, anxious, or on edge?",
@@ -33,6 +34,33 @@ const questions = [
     text: "Feeling tired or having little energy?",
     category: "general",
   },
+  // New questions
+  {
+    id: 6,
+    text: "Difficulty concentrating on things like reading or watching TV?",
+    category: "cognitive",
+  },
+  {
+    id: 7,
+    text: "Being so restless that it's hard to sit still?",
+    category: "anxiety",
+  },
+  {
+    id: 8,
+    text: "Thoughts that you would be better off dead?",
+    category: "depression",
+    severity: "high" // Flag for more severe symptom
+  },
+  {
+    id: 9,
+    text: "Trouble falling or staying asleep, or sleeping too much?",
+    category: "sleep",
+  },
+  {
+    id: 10,
+    text: "Poor appetite or overeating?",
+    category: "physical",
+  }
 ];
 
 const options = [

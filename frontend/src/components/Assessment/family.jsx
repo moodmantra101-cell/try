@@ -7,7 +7,8 @@ import { Label } from "../ui/label";
 import { Progress } from "../ui/progress";
 import { Users, ArrowLeft, BookOpen, ChevronRight } from "lucide-react";
 
-const questions = [
+ const questions = [
+  // Original questions
   {
     id: 1,
     text: "Do family members share responsibilities fairly?",
@@ -34,6 +35,33 @@ const questions = [
     text: "Do you feel your family works together to solve problems?",
     category: "teamwork",
   },
+  // New questions
+  {
+    id: 6,
+    text: "Does your family have meaningful traditions or rituals you enjoy?",
+    category: "bonding",
+  },
+  {
+    id: 7,
+    text: "Do conflicts in your family typically get resolved in a healthy way?",
+    category: "conflict resolution",
+  },
+  {
+    id: 8,
+    text: "Do you feel pressured to conform to family expectations?",
+    category: "individuality",
+    reverse: true,
+  },
+  {
+    id: 9,
+    text: "Do family members respect each other's privacy and personal space?",
+    category: "boundaries",
+  },
+  {
+    id: 10,
+    text: "Does your family adapt well to changes or stressful situations?",
+    category: "resilience",
+  }
 ];
 
 const options = [

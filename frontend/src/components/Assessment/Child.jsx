@@ -7,7 +7,7 @@ import { Label } from "../ui/label";
 import { Progress } from "../ui/progress";
 import { Baby, ArrowLeft, BookOpen, ChevronRight } from "lucide-react";
 
-const questions = [
+ const questions = [
   {
     id: 1,
     text: "Does the child seem happy or enjoy activities?",
@@ -36,6 +36,33 @@ const questions = [
     category: "anxiety",
     reverse: true,
   },
+  {
+    id: 6,
+    text: "Does the child show interest in learning new things?",
+    category: "engagement"
+  },
+  {
+    id: 7,
+    text: "Does the child complain of frequent headaches or stomachaches?",
+    category: "physical",
+    reverse: true
+  },
+  {
+    id: 8,
+    text: "Does the child follow instructions and complete tasks?",
+    category: "behavior"
+  },
+  {
+    id: 9,
+    text: "Does the child have difficulty focusing on activities?",
+    category: "attention",
+    reverse: true
+  },
+  {
+    id: 10,
+    text: "Does the child participate in physical activities or play?",
+    category: "physical"
+  }
 ];
 
 const options = [
