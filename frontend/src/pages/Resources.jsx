@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardHeader,
@@ -8,7 +9,7 @@ import {
   CardContent,
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import BlogSubmission from "../components/BlogSubmission";
+// import BlogSubmission from "../components/BlogSubmission";
 import TestConnection from "../components/TestConnection";
 import { useAuth } from "../context/AppContext";
 import axios from "axios";
@@ -33,11 +34,12 @@ import {
 
 const Resources = () => {
   const { token, userData, backendUrl } = useAuth();
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [showBlogSubmission, setShowBlogSubmission] = useState(false);
+  // const [showBlogSubmission, setShowBlogSubmission] = useState(false);
   const [blogPosts, setBlogPosts] = useState([]);
   const [featuredPosts, setFeaturedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -116,10 +118,16 @@ const Resources = () => {
       selectedCategory === "all" ||
       post.category.toLowerCase().replace(" ", "-") ===
         selectedCategory.toLowerCase().replace(" ", "-");
+
+    // Search through title, excerpt, author, and tags
+    const searchTerm = searchQuery.toLowerCase();
     const matchesSearch =
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.author.toLowerCase().includes(searchQuery.toLowerCase());
+      post.title.toLowerCase().includes(searchTerm) ||
+      post.excerpt.toLowerCase().includes(searchTerm) ||
+      post.author.toLowerCase().includes(searchTerm) ||
+      (post.tags &&
+        post.tags.some((tag) => tag.toLowerCase().includes(searchTerm)));
+
     return matchesCategory && matchesSearch;
   });
 
@@ -205,7 +213,7 @@ const Resources = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <Button
-                onClick={() => setShowBlogSubmission(true)}
+                onClick={() => navigate("/write-blog")}
                 size="lg"
                 className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl"
               >
@@ -219,7 +227,6 @@ const Resources = () => {
             </motion.div>
 
             {/* Test Connection Component */}
-       
           </motion.div>
 
           {/* Featured Posts Carousel */}
@@ -349,7 +356,7 @@ const Resources = () => {
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400" />
                 <input
                   type="text"
-                  placeholder="Search articles..."
+                  placeholder="Search articles, authors, or tags..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-purple-200 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -419,7 +426,7 @@ const Resources = () => {
                 </p>
                 {blogPosts.length === 0 && (
                   <Button
-                    onClick={() => setShowBlogSubmission(true)}
+                    onClick={() => navigate("/write-blog")}
                     className="bg-purple-600 hover:bg-purple-700"
                   >
                     <FaPlus className="mr-2" />
@@ -465,7 +472,10 @@ const Resources = () => {
                                 {formatDate(post.date)}
                               </span>
                             </div>
-                            <CardTitle className="text-lg mb-2 line-clamp-2">
+                            <CardTitle
+                              className="text-lg mb-2 line-clamp-2 cursor-pointer hover:text-purple-600 transition-colors"
+                              onClick={() => navigate(`/blog/${post.id}`)}
+                            >
                               {post.title}
                             </CardTitle>
                             <CardDescription className="mb-3 line-clamp-2">
@@ -483,7 +493,11 @@ const Resources = () => {
                                 </span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => navigate(`/blog/${post.id}`)}
+                                >
                                   Read More
                                 </Button>
                                 <Button variant="ghost" size="sm">
@@ -518,12 +532,13 @@ const Resources = () => {
                               {post.author}
                             </span>
                           </div>
-                          <CardTitle className="text-lg mb-3 line-clamp-2">
+                          <CardTitle
+                            className="text-lg mb-3 line-clamp-2 cursor-pointer hover:text-purple-600 transition-colors"
+                            onClick={() => navigate(`/blog/${post.id}`)}
+                          >
                             {post.title}
                           </CardTitle>
-                          <CardDescription className="mb-4 line-clamp-3">
-                            {post.excerpt}
-                          </CardDescription>
+                          
                           <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                             <div className="flex items-center gap-1">
                               <FaCalendarAlt className="text-purple-400" />
@@ -545,6 +560,7 @@ const Resources = () => {
                               variant="outline"
                               size="sm"
                               className="flex-1"
+                              onClick={() => navigate(`/blog/${post.id}`)}
                             >
                               Read More
                             </Button>
@@ -566,12 +582,7 @@ const Resources = () => {
         </div>
       </section>
 
-      {/* Blog Submission Modal */}
-      <BlogSubmission
-        isOpen={showBlogSubmission}
-        onClose={() => setShowBlogSubmission(false)}
-        onSubmitSuccess={handleBlogSubmissionSuccess}
-      />
+      {/* Blog Submission Modal - Removed, now using dedicated page */}
     </div>
   );
 };

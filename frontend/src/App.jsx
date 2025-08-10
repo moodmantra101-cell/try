@@ -33,6 +33,8 @@ import Assessment from "./pages/Assessment";
 import MyAssessments from "./pages/MyAssessments";
 import AssessmentDetailedResults from "./components/AssessmentDetailedResults";
 import CancellationPolicy from "./pages/CancellationPolicy";
+import BlogPost from "./pages/BlogPost";
+import WriteBlog from "./pages/WriteBlog";
 
 // Lazy load components
 const Doctors = lazy(() => import("./pages/Doctors"));
@@ -124,6 +126,8 @@ const App = () => {
 
             <Route path="/result" element={<Result />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/blog/:id" element={<BlogPost />} />
+            <Route path="/write-blog" element={<WriteBlog />} />
           </Routes>
         </Suspense>
         <Footer />

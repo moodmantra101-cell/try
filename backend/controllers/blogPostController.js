@@ -1,5 +1,6 @@
 import blogPostModel from "../models/blogPostModel.js";
 import userModel from "../models/userModel.js";
+import commentModel from "../models/commentModel.js";
 
 // Submit a new blog post
 export const submitBlogPost = async (req, res) => {
@@ -341,6 +342,134 @@ export const likeBlogPost = async (req, res) => {
     });
   } catch (error) {
     console.error("Error liking blog post:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// Add comment to blog post
+export const addComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content, isAnonymous = false } = req.body;
+    const userId = req.user.id;
+
+    // Validate required fields
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Comment content is required",
+      });
+    }
+
+    // Check if blog post exists and is approved
+    const blogPost = await blogPostModel.findById(id);
+    if (!blogPost) {
+      return res.status(404).json({
+        success: false,
+        message: "Blog post not found",
+      });
+    }
+
+    if (blogPost.status !== "approved") {
+      return res.status(404).json({
+        success: false,
+        message: "Blog post not found",
+      });
+    }
+
+    // Get user data
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Create comment
+    const comment = new commentModel({
+      blogPostId: id,
+      authorId: userId,
+      author: isAnonymous ? "Anonymous" : user.name || user.username || "User",
+      content: content.trim(),
+      isAnonymous,
+    });
+
+    await comment.save();
+
+    // Increment comment count on blog post
+    blogPost.comments += 1;
+    await blogPost.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Comment added successfully",
+      data: {
+        id: comment._id,
+        content: comment.content,
+        author: comment.author,
+        createdAt: comment.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// Get comments for blog post
+export const getComments = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    // Check if blog post exists and is approved
+    const blogPost = await blogPostModel.findById(id);
+    if (!blogPost) {
+      return res.status(404).json({
+        success: false,
+        message: "Blog post not found",
+      });
+    }
+
+    if (blogPost.status !== "approved") {
+      return res.status(404).json({
+        success: false,
+        message: "Blog post not found",
+      });
+    }
+
+    const skip = (page - 1) * limit;
+
+    const comments = await commentModel
+      .find({ blogPostId: id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await commentModel.countDocuments({ blogPostId: id });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        comments,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalComments: total,
+          hasNext: skip + comments.length < total,
+          hasPrev: page > 1,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching comments:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",

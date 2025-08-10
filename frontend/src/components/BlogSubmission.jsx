@@ -11,6 +11,7 @@ import { Button } from "./ui/button";
 import { useAuth } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import RichTextEditor from "./RichTextEditor";
 import {
   FaEdit,
   FaTimes,
@@ -70,19 +71,19 @@ const BlogSubmission = ({ isOpen, onClose, onSubmitSuccess }) => {
     const file = e.target.files[0];
     if (file) {
       // Validate file type
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please select a valid image file');
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please select a valid image file");
         return;
       }
-      
+
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('Image size should be less than 5MB');
+        toast.error("Image size should be less than 5MB");
         return;
       }
 
       setSelectedImage(file);
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -94,7 +95,7 @@ const BlogSubmission = ({ isOpen, onClose, onSubmitSuccess }) => {
 
   const handleImageUpload = async () => {
     if (!selectedImage) {
-      toast.error('Please select an image first');
+      toast.error("Please select an image first");
       return;
     }
 
@@ -102,12 +103,12 @@ const BlogSubmission = ({ isOpen, onClose, onSubmitSuccess }) => {
 
     try {
       const formData = new FormData();
-      formData.append('image', selectedImage);
+      formData.append("image", selectedImage);
 
       const response = await fetch(`${backendUrl}/api/upload/image`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'token': token,
+          token: token,
         },
         body: formData,
       });
@@ -115,18 +116,18 @@ const BlogSubmission = ({ isOpen, onClose, onSubmitSuccess }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to upload image');
+        throw new Error(data.message || "Failed to upload image");
       }
 
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        imageUrl: data.data.imageUrl
+        imageUrl: data.data.imageUrl,
       }));
 
-      toast.success('Image uploaded successfully!');
+      toast.success("Image uploaded successfully!");
     } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error(error.message || 'Failed to upload image. Please try again.');
+      console.error("Error uploading image:", error);
+      toast.error(error.message || "Failed to upload image. Please try again.");
     } finally {
       setIsUploadingImage(false);
     }
@@ -135,12 +136,12 @@ const BlogSubmission = ({ isOpen, onClose, onSubmitSuccess }) => {
   const removeImage = () => {
     setSelectedImage(null);
     setImagePreview(null);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      imageUrl: ""
+      imageUrl: "",
     }));
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -221,7 +222,7 @@ const BlogSubmission = ({ isOpen, onClose, onSubmitSuccess }) => {
       setSelectedImage(null);
       setImagePreview(null);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
 
       onClose();
@@ -250,7 +251,14 @@ const BlogSubmission = ({ isOpen, onClose, onSubmitSuccess }) => {
   };
 
   const generateExcerpt = (content) => {
-    return content.length > 150 ? content.substring(0, 150) + "..." : content;
+    const plainText = content.replace(/<[^>]*>/g, "");
+    return plainText.length > 150
+      ? plainText.substring(0, 150) + "..."
+      : plainText;
+  };
+
+  const getPlainTextLength = (content) => {
+    return content.replace(/<[^>]*>/g, "").length;
   };
 
   if (!isOpen) return null;
@@ -340,16 +348,26 @@ const BlogSubmission = ({ isOpen, onClose, onSubmitSuccess }) => {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Content *
                 </label>
-                <textarea
-                  name="content"
+                <div className="mb-2">
+                  <p className="text-xs text-gray-600 mb-1">
+                    💡 <strong>Editor Tips:</strong> Use the toolbar above or
+                    keyboard shortcuts (Ctrl+B for bold, Ctrl+I for italic,
+                    Ctrl+U for underline)
+                  </p>
+                </div>
+                <RichTextEditor
                   value={formData.content}
-                  onChange={handleInputChange}
+                  onChange={(newContent) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      content: newContent,
+                    }));
+                  }}
                   placeholder="Write your blog post content here..."
-                  rows={8}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  {formData.content.length} characters
+                  {getPlainTextLength(formData.content)} characters (HTML tags
+                  excluded)
                 </p>
               </div>
 
@@ -393,7 +411,7 @@ const BlogSubmission = ({ isOpen, onClose, onSubmitSuccess }) => {
                   <p className="text-xs text-gray-500 text-center">
                     Supported formats: JPG, PNG, GIF (Max 5MB)
                   </p>
-                  
+
                   {selectedImage && (
                     <div className="mt-4 w-full">
                       <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
@@ -444,7 +462,7 @@ const BlogSubmission = ({ isOpen, onClose, onSubmitSuccess }) => {
                       </div>
                     </div>
                   )}
-                  
+
                   {imagePreview && (
                     <div className="mt-4 w-full">
                       <div className="relative h-48 overflow-hidden rounded-lg border">
@@ -459,13 +477,15 @@ const BlogSubmission = ({ isOpen, onClose, onSubmitSuccess }) => {
                       </div>
                     </div>
                   )}
-                  
+
                   {formData.imageUrl && !selectedImage && (
                     <div className="mt-4 w-full">
                       <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                         <div className="flex items-center text-green-700">
                           <FaCheck className="mr-2" />
-                          <span className="text-sm">Image uploaded successfully!</span>
+                          <span className="text-sm">
+                            Image uploaded successfully!
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -542,10 +562,33 @@ const BlogSubmission = ({ isOpen, onClose, onSubmitSuccess }) => {
                           {formData.title || "Your title will appear here"}
                         </CardTitle>
                         <CardDescription className="mb-4">
-                          {formData.content
-                            ? generateExcerpt(formData.content)
-                            : "Your content will appear here..."}
+                          {formData.content ? (
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: generateExcerpt(
+                                  formData.content.replace(/<[^>]*>/g, "")
+                                ),
+                              }}
+                            />
+                          ) : (
+                            "Your content will appear here..."
+                          )}
                         </CardDescription>
+
+                        {/* Full Content Preview */}
+                        {formData.content && (
+                          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                            <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                              Full Content Preview:
+                            </h4>
+                            <div
+                              className="prose prose-sm max-w-none"
+                              dangerouslySetInnerHTML={{
+                                __html: formData.content,
+                              }}
+                            />
+                          </div>
+                        )}
                         <div className="flex items-center justify-between text-sm text-gray-500">
                           <div className="flex items-center gap-1">
                             <FaCalendarAlt className="text-purple-400" />

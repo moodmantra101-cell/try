@@ -8,9 +8,11 @@ import {
   getPendingBlogPosts,
   reviewBlogPost,
   likeBlogPost,
+  addComment,
+  getComments,
 } from "../controllers/blogPostController.js";
-import  authUser  from "../middlewares/authUser.js";
-import  authAdmin  from "../middlewares/authAdmin.js";
+import authUser from "../middlewares/authUser.js";
+import authAdmin from "../middlewares/authAdmin.js";
 
 const router = express.Router();
 
@@ -23,6 +25,8 @@ router.get("/:id", getBlogPostById);
 router.post("/submit", authUser, submitBlogPost);
 router.get("/user/posts", authUser, getUserBlogPosts);
 router.post("/:id/like", authUser, likeBlogPost);
+router.post("/:id/comments", authUser, addComment);
+router.get("/:id/comments", getComments);
 
 // Admin routes (require admin authentication)
 router.get("/admin/pending", authAdmin, getPendingBlogPosts);
