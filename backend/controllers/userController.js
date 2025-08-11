@@ -6,6 +6,10 @@ import { v2 as cloudinary } from "cloudinary";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import razorpay from "razorpay";
+import { OAuth2Client } from "google-auth-library";
+
+// Google OAuth client
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // api to register a new user
 const registerUser = async (req, res) => {
@@ -112,6 +116,65 @@ const loginUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Login failed! Try again.",
+    });
+  }
+};
+
+// api to login with Google OAuth
+const googleLogin = async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Google token is required" });
+    }
+
+    // Verify the Google ID token
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture, email_verified } = payload;
+
+    // Check if user already exists
+    let user = await userModel.findOne({ googleId });
+
+    if (!user) {
+      // Check if user exists with email but not Google OAuth
+      user = await userModel.findOne({ email });
+
+      if (user) {
+        // Update existing user to include Google OAuth info
+        user.googleId = googleId;
+        user.isGoogleUser = true;
+        user.emailVerified = email_verified;
+        if (picture) user.image = picture;
+        await user.save();
+      } else {
+        // Create new user
+        user = new userModel({
+          name,
+          email,
+          googleId,
+          isGoogleUser: true,
+          emailVerified: email_verified,
+          image: picture || "",
+        });
+        await user.save();
+      }
+    }
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    res.status(200).json({ success: true, token });
+  } catch (error) {
+    console.log("Google login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Google login failed! Try again.",
     });
   }
 };
@@ -365,6 +428,7 @@ const verifyRazorpay = async (req, res) => {
 export {
   registerUser,
   loginUser,
+  googleLogin,
   getProfile,
   updateProfile,
   bookAppointment,

@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { Loader } from "lucide-react";
 import { validateToken } from "../utils/tokenUtils";
+import { GoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
   const { backendUrl, token, setToken } = useContext(AppContext);
@@ -57,6 +58,39 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Google OAuth handler
+  const handleGoogleSuccess = async (credentialResponse) => {
+    console.log("✅ Google login successful:", credentialResponse);
+    setLoading(true);
+    try {
+      const { data } = await axios.post(backendUrl + "/api/user/google-login", {
+        idToken: credentialResponse.credential,
+      });
+
+      if (data.success && validateToken(data.token)) {
+        localStorage.setItem("token", data.token);
+        setToken(data.token);
+        toast.success("Google login successful!");
+      } else {
+        toast.error("Invalid token received from server");
+      }
+    } catch (error) {
+      console.error("❌ Google login error:", error);
+      if (error.response && error.response.data) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Google login failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = (error) => {
+    console.error("❌ Google OAuth error:", error);
+    toast.error("Google login failed. Please try again.");
   };
 
   useEffect(() => {
@@ -154,6 +188,37 @@ const Login = () => {
                 )}
               </button>
             </div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1 h-px bg-gray-300"></div>
+              <span className="text-gray-500 text-sm">or</span>
+              <div className="flex-1 h-px bg-gray-300"></div>
+            </div>
+
+            {/* Google Login */}
+            <div className="flex w-full items-center justify-center">
+              {import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+              "538958279442-765j798cilkvbvmdkgq29g4om78j7ig2.apps.googleusercontent.com" ? (
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  disabled={loading}
+                  theme="outline"
+                  size="large"
+                  text="continue_with"
+                  shape="rectangular"
+                  width="100%"
+                  useOneTap={true}
+                />
+              ) : (
+                <div className="w-full p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                  Google login is not configured. Please check your environment
+                  variables.
+                </div>
+              )}
+            </div>
+
             {/* toggle between forms */}
             {state === "Sign Up" ? (
               <p className="text-purple-600">

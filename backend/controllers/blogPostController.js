@@ -34,11 +34,45 @@ export const submitBlogPost = async (req, res) => {
       });
     }
 
+    // Generate unique slug from title
+    const generateUniqueSlug = async (title) => {
+      let baseSlug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "") // Remove special characters except spaces and hyphens
+        .replace(/\s+/g, "-") // Replace spaces with hyphens
+        .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+        .trim("-"); // Remove leading/trailing hyphens
+
+      // Ensure slug is not empty
+      if (baseSlug === "") {
+        baseSlug = "blog-post-" + Date.now();
+      }
+
+      // Check if slug already exists and make it unique
+      let slug = baseSlug;
+      let counter = 1;
+
+      while (true) {
+        const existingPost = await blogPostModel.findOne({ slug });
+        if (!existingPost) {
+          break;
+        }
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+
+      return slug;
+    };
+
+    // Generate unique slug
+    const uniqueSlug = await generateUniqueSlug(title);
+
     // Create blog post
     const blogPost = new blogPostModel({
       authorId: userId,
       author: isAnonymous ? "Anonymous" : user.name || user.username || "User",
       title,
+      slug: uniqueSlug, // Use the generated unique slug
       category,
       content,
       tags: tags
@@ -53,7 +87,9 @@ export const submitBlogPost = async (req, res) => {
       submittedAt: new Date(),
     });
 
+    console.log("Before save - Title:", blogPost.title, "Slug:", blogPost.slug);
     await blogPost.save();
+    console.log("After save - Title:", blogPost.title, "Slug:", blogPost.slug);
 
     res.status(201).json({
       success: true,
@@ -188,7 +224,20 @@ export const getBlogPostById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const blogPost = await blogPostModel.findById(id);
+    // Check if the id is a valid ObjectId (24 character hex string)
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+
+    let blogPost;
+
+    if (isValidObjectId) {
+      // Try to find by ObjectId first
+      blogPost = await blogPostModel.findById(id);
+    }
+
+    // If not found by ObjectId or not a valid ObjectId, try to find by slug
+    if (!blogPost) {
+      blogPost = await blogPostModel.findOne({ slug: id });
+    }
 
     if (!blogPost) {
       return res.status(404).json({
@@ -313,7 +362,20 @@ export const likeBlogPost = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
 
-    const blogPost = await blogPostModel.findById(id);
+    // Check if the id is a valid ObjectId (24 character hex string)
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+
+    let blogPost;
+
+    if (isValidObjectId) {
+      // Try to find by ObjectId first
+      blogPost = await blogPostModel.findById(id);
+    }
+
+    // If not found by ObjectId or not a valid ObjectId, try to find by slug
+    if (!blogPost) {
+      blogPost = await blogPostModel.findOne({ slug: id });
+    }
 
     if (!blogPost) {
       return res.status(404).json({
@@ -364,8 +426,21 @@ export const addComment = async (req, res) => {
       });
     }
 
-    // Check if blog post exists and is approved
-    const blogPost = await blogPostModel.findById(id);
+    // Check if the id is a valid ObjectId (24 character hex string)
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+
+    let blogPost;
+
+    if (isValidObjectId) {
+      // Try to find by ObjectId first
+      blogPost = await blogPostModel.findById(id);
+    }
+
+    // If not found by ObjectId or not a valid ObjectId, try to find by slug
+    if (!blogPost) {
+      blogPost = await blogPostModel.findOne({ slug: id });
+    }
+
     if (!blogPost) {
       return res.status(404).json({
         success: false,
@@ -391,7 +466,7 @@ export const addComment = async (req, res) => {
 
     // Create comment
     const comment = new commentModel({
-      blogPostId: id,
+      blogPostId: blogPost._id, // Use the actual ObjectId from the found blog post
       authorId: userId,
       author: isAnonymous ? "Anonymous" : user.name || user.username || "User",
       content: content.trim(),
@@ -429,8 +504,21 @@ export const getComments = async (req, res) => {
     const { id } = req.params;
     const { page = 1, limit = 10 } = req.query;
 
-    // Check if blog post exists and is approved
-    const blogPost = await blogPostModel.findById(id);
+    // Check if the id is a valid ObjectId (24 character hex string)
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+
+    let blogPost;
+
+    if (isValidObjectId) {
+      // Try to find by ObjectId first
+      blogPost = await blogPostModel.findById(id);
+    }
+
+    // If not found by ObjectId or not a valid ObjectId, try to find by slug
+    if (!blogPost) {
+      blogPost = await blogPostModel.findOne({ slug: id });
+    }
+
     if (!blogPost) {
       return res.status(404).json({
         success: false,
@@ -448,12 +536,14 @@ export const getComments = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const comments = await commentModel
-      .find({ blogPostId: id })
+      .find({ blogPostId: blogPost._id })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
 
-    const total = await commentModel.countDocuments({ blogPostId: id });
+    const total = await commentModel.countDocuments({
+      blogPostId: blogPost._id,
+    });
 
     res.status(200).json({
       success: true,

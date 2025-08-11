@@ -10,6 +10,7 @@ import {
   updateDoctorProfile,
   getDoctorPatients,
   downloadDoctorPatientsPDF,
+  getPatientMoodData,
 } from "../controllers/doctorController.js";
 import authDoctor from "../middlewares/authDoctor.js";
 
@@ -29,5 +30,6 @@ doctorRouter.get(
   authDoctor,
   downloadDoctorPatientsPDF
 );
+doctorRouter.get("/patient-mood-data", authDoctor, getPatientMoodData);
 
 export default doctorRouter;

@@ -22,6 +22,7 @@ import DoctorProfile from "./pages/Doctor/DoctorProfile";
 import MyPatients from "./pages/Doctor/MyPatients";
 import PatientsReports from "./pages/Doctor/MyPatientsReports";
 import MyPatientsReports from "./pages/Doctor/MyPatientsReports";
+import PatientMoodData from "./pages/Doctor/PatientMoodData";
 
 const App = () => {
   const { aToken } = useContext(AdminContext);
@@ -68,6 +69,7 @@ const App = () => {
                 path="/my-patient-reports"
                 element={<MyPatientsReports />}
               />
+              <Route path="/patient-mood-data" element={<PatientMoodData />} />
             </Routes>
           </div>
         </div>

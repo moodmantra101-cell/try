@@ -27,7 +27,7 @@ import {
 } from "react-icons/fa";
 
 const BlogPost = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
   const { backendUrl, token, userData } = useContext(AppContext);
 
@@ -45,7 +45,9 @@ const BlogPost = () => {
     const fetchBlogPost = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get(`${backendUrl}/api/blog-posts/${id}`);
+        const { data } = await axios.get(
+          `${backendUrl}/api/blog-posts/${slug}`
+        );
 
         if (data.success) {
           setBlogPost(data.data);
@@ -62,16 +64,16 @@ const BlogPost = () => {
       }
     };
 
-    if (id) {
+    if (slug) {
       fetchBlogPost();
     }
-  }, [id, backendUrl, navigate]);
+  }, [slug, backendUrl, navigate]);
 
   // Fetch comments
   const fetchComments = async () => {
     try {
       const { data } = await axios.get(
-        `${backendUrl}/api/blog-posts/${id}/comments`
+        `${backendUrl}/api/blog-posts/${slug}/comments`
       );
       if (data.success) {
         setComments(data.data.comments);
@@ -106,7 +108,7 @@ const BlogPost = () => {
 
     try {
       const { data } = await axios.post(
-        `${backendUrl}/api/blog-posts/${id}/like`,
+        `${backendUrl}/api/blog-posts/${slug}/like`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -140,7 +142,7 @@ const BlogPost = () => {
     setSubmittingComment(true);
     try {
       const { data } = await axios.post(
-        `${backendUrl}/api/blog-posts/${id}/comments`,
+        `${backendUrl}/api/blog-posts/${slug}/comments`,
         {
           content: newComment.trim(),
         },
@@ -540,7 +542,7 @@ const BlogPost = () => {
               {relatedPosts.map((post) => (
                 <Link
                   key={post._id}
-                  to={`/blog/${post._id}`}
+                  to={`/blog/${post.slug}`}
                   className="group block"
                 >
                   <div className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">

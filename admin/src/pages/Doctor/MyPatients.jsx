@@ -1,6 +1,7 @@
 import { AppContext } from "@/context/AppContext";
 import { DoctorContext } from "@/context/DoctorContext";
 import React, { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   CalendarDays,
   Phone,
@@ -13,6 +14,7 @@ import {
   XCircle,
   AlertCircle,
   Download,
+  Brain,
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -23,6 +25,7 @@ const MyPatients = () => {
   const { dToken, patients, getPatients } = useContext(DoctorContext);
   const { calculateAge, slotDateFormat, currencySymbol } =
     useContext(AppContext);
+  const navigate = useNavigate();
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -490,6 +493,28 @@ const MyPatients = () => {
                       </div>
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-6 pt-6 border-t">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-semibold text-primary">
+                    Actions
+                  </h4>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => {
+                        navigate(
+                          `/patient-mood-data?patientId=${selectedPatient.patientId}`
+                        );
+                      }}
+                      className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      <Brain size={16} />
+                      <span>View Mood Data</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

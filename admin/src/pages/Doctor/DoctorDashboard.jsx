@@ -1,8 +1,9 @@
 import { assets } from "@/assets/assets";
 import { AppContext } from "@/context/AppContext";
 import { DoctorContext } from "@/context/DoctorContext";
-import { CalendarDays, Check, Loader2, X } from "lucide-react";
+import { CalendarDays, Check, Loader2, X, Brain, Users } from "lucide-react";
 import React, { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Tooltip,
   TooltipContent,
@@ -23,6 +24,7 @@ const DoctorDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const { slotDateFormat, currencySymbol } = useContext(AppContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (dToken) {
@@ -227,6 +229,39 @@ const DoctorDashboard = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="bg-white border px-4 pt-5 pb-2.5 rounded-xl">
+            <div className="flex items-center gap-3 pb-3.5 uppercase text-gray-700 border-b">
+              <Brain size={24} strokeWidth={2} />
+              <p className="text-base sm:text-lg font-semibold tracking-wide">
+                Quick Actions
+              </p>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              <button
+                onClick={() => navigate("/my-patients")}
+                className="w-full flex items-center gap-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors group"
+              >
+                <Users
+                  size={20}
+                  className="text-blue-600 group-hover:text-blue-700"
+                />
+                <div className="text-left">
+                  <p className="font-medium text-blue-900">View All Patients</p>
+                  <p className="text-sm text-blue-700">
+                    Access patient list and mood data
+                  </p>
+                </div>
+              </button>
+
+              <div className="text-center text-sm text-gray-500">
+                Click on any patient to view their mood tracking data and
+                insights
+              </div>
             </div>
           </div>
         </div>

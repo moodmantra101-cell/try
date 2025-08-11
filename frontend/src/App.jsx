@@ -16,7 +16,9 @@ import WelcomeLoader from "./components/WelcomeLoader";
 
 import Services from "./pages/Services";
 import OurTeam from "./pages/Team";
+import MoodTracker from "../MoodAnalyzer/moodtracker";
 import MoodAnalysis from "./pages/MoodAnalysis";
+import MoodDashboard from "./pages/MoodDashboard";
 import MoodTest from "./components/MoodAnalysis/MoodTest";
 import Child from "./components/Assessment/Child";
 
@@ -24,7 +26,6 @@ import Family from "./components/Assessment/family";
 import Individual from "./components/Assessment/individual";
 import Result from "./pages/Result";
 
-import MoodTracker from "../MoodAnalyzer/moodtracker";
 import Resources from "./pages/Resources";
 import Couples from "./components/Assessment/Couples";
 
@@ -35,6 +36,8 @@ import AssessmentDetailedResults from "./components/AssessmentDetailedResults";
 import CancellationPolicy from "./pages/CancellationPolicy";
 import BlogPost from "./pages/BlogPost";
 import WriteBlog from "./pages/WriteBlog";
+import AIMoodTracker from "./pages/AIMoodTracker";
+import Notifications from "./pages/Notifications";
 
 // Lazy load components
 const Doctors = lazy(() => import("./pages/Doctors"));
@@ -72,6 +75,11 @@ const App = () => {
       setShowLoader(false);
     }, 5000);
   }, []);
+
+  // Temporary debug - remove this later
+  console.log("🚀 App.jsx - Environment check:");
+  console.log("VITE_GOOGLE_CLIENT_ID:", import.meta.env.VITE_GOOGLE_CLIENT_ID);
+  console.log("VITE_BACKEND_URL:", import.meta.env.VITE_BACKEND_URL);
 
   return (
     <>
@@ -114,6 +122,8 @@ const App = () => {
 
             {/* Assessment routes */}
             <Route path="/mood-analysis" element={<MoodAnalysis />} />
+            <Route path="/moodtracker" element={<MoodTracker />} />
+            <Route path="/mood-dashboard" element={<MoodDashboard />} />
             <Route path="/moodtest" element={<MoodTest />} />
             <Route path="/child" element={<Child />} />
             <Route path="/couples" element={<Couples />} />
@@ -122,11 +132,12 @@ const App = () => {
 
             {/* MOOD ANALYZER routes */}
 
-            <Route path="/moodtracker" element={<MoodTracker />} />
+            <Route path="/ai-moodtracker" element={<AIMoodTracker />} />
+            <Route path="/notifications" element={<Notifications />} />
 
             <Route path="/result" element={<Result />} />
             <Route path="/resources" element={<Resources />} />
-            <Route path="/blog/:id" element={<BlogPost />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/write-blog" element={<WriteBlog />} />
           </Routes>
         </Suspense>

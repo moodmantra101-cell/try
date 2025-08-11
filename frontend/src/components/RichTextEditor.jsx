@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+ import React, { useState, useRef, useEffect } from "react";
 import {
   FaBold,
   FaItalic,
@@ -30,9 +30,16 @@ const RichTextEditor = ({
     bold: false,
     italic: false,
     underline: false,
+    heading: false,
+    list: false,
+    align: null,
   });
   const [cursorPosition, setCursorPosition] = useState(null);
   const updateTimeoutRef = useRef(null);
+  const resizeHandleRef = useRef(null);
+  const resizingImageRef = useRef(null);
+  const initialSizeRef = useRef({ width: 0, height: 0 });
+  const initialPositionRef = useRef({ x: 0, y: 0 });
 
   // Save cursor position
   const saveCursorPosition = () => {
@@ -125,7 +132,6 @@ const RichTextEditor = ({
       saveCursorPosition();
 
       const content = editorRef.current.innerHTML;
-      console.log("Editor content updated:", content); // Debug log
       onChange(content);
       updateFormatState();
 
@@ -138,10 +144,52 @@ const RichTextEditor = ({
 
   const updateFormatState = () => {
     if (editorRef.current) {
+      const selection = window.getSelection();
+      const node = selection.anchorNode;
+      const parentElement = node?.parentElement;
+
+      // Check if we're inside a heading
+      let isHeading = false;
+      if (parentElement) {
+        const headingTags = ["H1", "H2", "H3", "H4", "H5", "H6"];
+        isHeading = headingTags.includes(parentElement.tagName);
+      }
+
+      // Check if we're inside a list
+      let isList = false;
+      if (parentElement) {
+        const listParents = ["UL", "OL", "LI"];
+        let current = parentElement;
+        while (current) {
+          if (listParents.includes(current.tagName)) {
+            isList = true;
+            break;
+          }
+          current = current.parentElement;
+        }
+      }
+
+      // Check text alignment
+      let align = null;
+      if (parentElement) {
+        const alignments = ["left", "center", "right", "justify"];
+        let current = parentElement;
+        while (current) {
+          if (current.style && current.style.textAlign && alignments.includes(current.style.textAlign)) {
+            align = current.style.textAlign;
+            break;
+          }
+          current = current.parentElement;
+        }
+      }
+
       setFormatState({
         bold: document.queryCommandState("bold"),
         italic: document.queryCommandState("italic"),
         underline: document.queryCommandState("underline"),
+        heading: isHeading,
+        list: isList,
+        align,
       });
     }
   };
@@ -222,35 +270,8 @@ const RichTextEditor = ({
         imageUrl = URL.createObjectURL(file);
       }
 
-      // Check if we got a valid image URL
       if (!imageUrl) {
         throw new Error("Failed to get image URL");
-      }
-
-      console.log("Inserting image with URL:", imageUrl); // Debug log
-
-      // Test if the image URL is accessible
-      try {
-        const testImg = new Image();
-        testImg.onload = () => {
-          console.log("Image URL is accessible:", imageUrl);
-        };
-        testImg.onerror = () => {
-          console.error("Image URL is not accessible:", imageUrl);
-          // Try to create a simple img element to debug
-          const debugImg = document.createElement("img");
-          debugImg.src = imageUrl;
-          debugImg.style.width = "100px";
-          debugImg.style.height = "100px";
-          debugImg.style.border = "2px solid red";
-          document.body.appendChild(debugImg);
-          setTimeout(() => {
-            document.body.removeChild(debugImg);
-          }, 5000);
-        };
-        testImg.src = imageUrl;
-      } catch (error) {
-        console.error("Error testing image URL:", error);
       }
 
       // Insert image at cursor position
@@ -258,24 +279,40 @@ const RichTextEditor = ({
       if (selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
 
-        // Simple and reliable image insertion
         const imgElement = document.createElement("img");
         imgElement.src = imageUrl;
         imgElement.alt = "Uploaded image";
-        imgElement.className = "max-w-full h-auto rounded-lg my-4";
+        imgElement.className = "editor-image";
         imgElement.style.maxWidth = "100%";
         imgElement.style.height = "auto";
         imgElement.style.borderRadius = "0.5rem";
         imgElement.style.margin = "1rem 0";
         imgElement.style.display = "block";
+        imgElement.style.position = "relative";
+
+        // Add resize handles container
+        const resizeHandles = document.createElement("div");
+        resizeHandles.className = "resize-handles";
+        resizeHandles.style.position = "absolute";
+        resizeHandles.style.bottom = "0";
+        resizeHandles.style.right = "0";
+        resizeHandles.style.width = "16px";
+        resizeHandles.style.height = "16px";
+        resizeHandles.style.backgroundColor = "rgba(0,0,0,0.5)";
+        resizeHandles.style.cursor = "nwse-resize";
+        resizeHandles.style.borderRadius = "2px 0 0 0";
+
+        // Add event listeners for resizing
+        resizeHandles.addEventListener("mousedown", (e) => {
+          e.stopPropagation();
+          startResizing(imgElement, e);
+        });
+
+        imgElement.appendChild(resizeHandles);
 
         imgElement.onerror = () => {
           console.error("Failed to load image:", imageUrl);
           alert("Failed to load image. Please try again.");
-        };
-
-        imgElement.onload = () => {
-          console.log("Image loaded successfully:", imageUrl);
         };
 
         // Insert the image
@@ -301,20 +338,37 @@ const RichTextEditor = ({
         const imgElement = document.createElement("img");
         imgElement.src = imageUrl;
         imgElement.alt = "Uploaded image";
-        imgElement.className = "max-w-full h-auto rounded-lg my-4";
+        imgElement.className = "editor-image";
         imgElement.style.maxWidth = "100%";
         imgElement.style.height = "auto";
         imgElement.style.borderRadius = "0.5rem";
         imgElement.style.margin = "1rem 0";
         imgElement.style.display = "block";
+        imgElement.style.position = "relative";
+
+        // Add resize handles container
+        const resizeHandles = document.createElement("div");
+        resizeHandles.className = "resize-handles";
+        resizeHandles.style.position = "absolute";
+        resizeHandles.style.bottom = "0";
+        resizeHandles.style.right = "0";
+        resizeHandles.style.width = "16px";
+        resizeHandles.style.height = "16px";
+        resizeHandles.style.backgroundColor = "rgba(0,0,0,0.5)";
+        resizeHandles.style.cursor = "nwse-resize";
+        resizeHandles.style.borderRadius = "2px 0 0 0";
+
+        // Add event listeners for resizing
+        resizeHandles.addEventListener("mousedown", (e) => {
+          e.stopPropagation();
+          startResizing(imgElement, e);
+        });
+
+        imgElement.appendChild(resizeHandles);
 
         imgElement.onerror = () => {
           console.error("Failed to load image:", imageUrl);
           alert("Failed to load image. Please try again.");
-        };
-
-        imgElement.onload = () => {
-          console.log("Image loaded successfully:", imageUrl);
         };
 
         editorRef.current?.appendChild(imgElement);
@@ -327,6 +381,51 @@ const RichTextEditor = ({
     } finally {
       setIsUploadingImage(false);
     }
+  };
+
+  const startResizing = (imgElement, e) => {
+    e.preventDefault();
+    resizingImageRef.current = imgElement;
+    initialSizeRef.current = {
+      width: imgElement.offsetWidth,
+      height: imgElement.offsetHeight,
+    };
+    initialPositionRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+    };
+
+    document.addEventListener("mousemove", handleResize);
+    document.addEventListener("mouseup", stopResizing);
+  };
+
+  const handleResize = (e) => {
+    if (!resizingImageRef.current) return;
+
+    const deltaX = e.clientX - initialPositionRef.current.x;
+    const deltaY = e.clientY - initialPositionRef.current.y;
+
+    const newWidth = initialSizeRef.current.width + deltaX;
+    const newHeight = initialSizeRef.current.height + deltaY;
+
+    // Set minimum dimensions
+    const minSize = 50;
+    const finalWidth = Math.max(minSize, newWidth);
+    const finalHeight = Math.max(minSize, newHeight);
+
+    resizingImageRef.current.style.width = `${finalWidth}px`;
+    resizingImageRef.current.style.height = `${finalHeight}px`;
+    resizingImageRef.current.style.maxWidth = "none";
+    resizingImageRef.current.style.objectFit = "contain";
+
+    // Update content
+    updateContent();
+  };
+
+  const stopResizing = () => {
+    resizingImageRef.current = null;
+    document.removeEventListener("mousemove", handleResize);
+    document.removeEventListener("mouseup", stopResizing);
   };
 
   const handleDragOver = (e) => {
@@ -371,7 +470,7 @@ const RichTextEditor = ({
   return (
     <div className="border border-gray-300 rounded-xl overflow-hidden h-full flex flex-col">
       {/* Toolbar */}
-      <div className="bg-gray-50 border-b border-gray-300 p-2 flex items-center gap-1 flex-wrap flex-shrink-0">
+      <div className="bg-gray-50 border-b border-gray-300 p-2 flex items-center gap-1 flex-wrap flex-shrink-0 sticky top-0 z-10">
         {/* Text Formatting */}
         <div className="flex items-center gap-1">
           <ToolbarButton
@@ -402,12 +501,17 @@ const RichTextEditor = ({
             icon={FaHeading}
             onClick={() => execCommand("formatBlock", "<h2>")}
             title="Heading 2"
+            isActive={formatState.heading}
           />
           <button
             type="button"
             onClick={() => execCommand("formatBlock", "<h3>")}
             title="Heading 3"
-            className="p-2 rounded-md transition-colors text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+            className={`p-2 rounded-md transition-colors ${
+              formatState.heading
+                ? "bg-purple-100 text-purple-700 border border-purple-200"
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+            }`}
           >
             <span className="text-xs font-bold">H3</span>
           </button>
@@ -421,11 +525,13 @@ const RichTextEditor = ({
             icon={FaListUl}
             onClick={() => execCommand("insertUnorderedList")}
             title="Bullet List"
+            isActive={formatState.list}
           />
           <ToolbarButton
             icon={FaListOl}
             onClick={() => execCommand("insertOrderedList")}
             title="Numbered List"
+            isActive={formatState.list}
           />
         </div>
 
@@ -467,21 +573,25 @@ const RichTextEditor = ({
             icon={FaAlignLeft}
             onClick={() => execCommand("justifyLeft")}
             title="Align Left"
+            isActive={formatState.align === "left"}
           />
           <ToolbarButton
             icon={FaAlignCenter}
             onClick={() => execCommand("justifyCenter")}
             title="Align Center"
+            isActive={formatState.align === "center"}
           />
           <ToolbarButton
             icon={FaAlignRight}
             onClick={() => execCommand("justifyRight")}
             title="Align Right"
+            isActive={formatState.align === "right"}
           />
           <ToolbarButton
             icon={FaAlignJustify}
             onClick={() => execCommand("justifyFull")}
             title="Justify"
+            isActive={formatState.align === "justify"}
           />
         </div>
       </div>
@@ -492,14 +602,12 @@ const RichTextEditor = ({
         contentEditable
         dir="ltr"
         onInput={() => {
-          // Only update format state on input, not content
           updateFormatState();
           saveCursorPosition();
-          debouncedUpdateContent(); // Use debounced update
+          debouncedUpdateContent();
         }}
         onBlur={() => {
           setIsFocused(false);
-          // Force immediate update when editor loses focus
           if (editorRef.current) {
             const content = editorRef.current.innerHTML;
             onChange(content);
@@ -515,14 +623,12 @@ const RichTextEditor = ({
           saveCursorPosition();
         }}
         onKeyDown={(e) => {
-          // Save cursor position before any key operation
           saveCursorPosition();
           handleKeyDown(e);
         }}
         onFocus={() => {
           setIsFocused(true);
           updateFormatState();
-          // Ensure proper text direction on focus
           if (editorRef.current) {
             editorRef.current.style.direction = "ltr";
             editorRef.current.style.textAlign = "left";
@@ -532,7 +638,7 @@ const RichTextEditor = ({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`flex-1 p-4 focus:outline-none transition-colors ${
+        className={`flex-1 p-4 focus:outline-none transition-colors overflow-auto ${
           isFocused ? "ring-2 ring-purple-500 ring-inset" : ""
         }`}
         style={{
@@ -546,15 +652,41 @@ const RichTextEditor = ({
         data-placeholder={placeholder}
       />
 
-      {/* Drag & Drop Overlay */}
-      <div className="hidden absolute inset-0 bg-purple-50 border-2 border-dashed border-purple-300 rounded-lg flex items-center justify-center pointer-events-none">
-        <div className="text-center">
-          <FaUpload className="text-4xl text-purple-400 mx-auto mb-2" />
-          <p className="text-purple-600 font-medium">Drop image here</p>
-        </div>
-      </div>
+      {/* CSS for the editor */}
+      <style jsx>{`
+        .editor-image {
+          max-width: 100%;
+          height: auto;
+          border-radius: 0.5rem;
+          margin: 1rem 0;
+          display: block;
+          position: relative;
+        }
+
+        .editor-image:hover .resize-handles {
+          opacity: 1;
+        }
+
+        .resize-handles {
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          width: 16px;
+          height: 16px;
+          background-color: rgba(0, 0, 0, 0.5);
+          cursor: nwse-resize;
+          border-radius: 2px 0 0 0;
+          opacity: 0;
+          transition: opacity 0.2s;
+        }
+
+        .resize-handles:hover {
+          opacity: 1;
+        }
+      `}</style>
     </div>
   );
 };
 
 export default RichTextEditor;
+

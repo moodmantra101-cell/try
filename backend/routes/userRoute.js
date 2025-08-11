@@ -9,6 +9,7 @@ import {
   cancelAppointment,
   paymentRazorpay,
   verifyRazorpay,
+  googleLogin,
 } from "../controllers/userController.js";
 import authUser from "../middlewares/authUser.js";
 import upload from "../middlewares/multer.js";
@@ -17,6 +18,7 @@ const userRouter = express.Router();
 
 userRouter.post("/register", registerUser);
 userRouter.post("/login", loginUser);
+userRouter.post("/google-login", googleLogin);
 
 userRouter.get("/get-profile", authUser, getProfile);
 userRouter.post(

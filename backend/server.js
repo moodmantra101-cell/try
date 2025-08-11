@@ -11,6 +11,9 @@ import assessmentRouter from "./routes/assessmentRoute.js";
 import testimonialRouter from "./routes/testimonialRoute.js";
 import blogPostRouter from "./routes/blogPostRoute.js";
 import uploadRouter from "./routes/uploadRoute.js";
+import moodTrackingRouter from "./routes/moodTrackingRoute.js";
+import notificationRouter from "./routes/notificationRoute.js";
+import notificationService from "./services/notificationService.js";
 
 // -------- app config ----------
 const app = express();
@@ -33,6 +36,8 @@ app.use("/api/assessments", assessmentRouter);
 app.use("/api/testimonials", testimonialRouter);
 app.use("/api/blog-posts", blogPostRouter);
 app.use("/api/upload", uploadRouter);
+app.use("/api/mood-tracking", moodTrackingRouter);
+app.use("/api/notifications", notificationRouter);
 
 app.get("/", (req, res) => {
   res.send("API WORKING...");
@@ -45,4 +50,8 @@ app.get("/test", (req, res) => {
 // -------- port listen -------
 app.listen(port, () => {
   console.log("Server Running on port", port);
+
+  // Start notification service
+  notificationService.start();
+  console.log("Notification service started");
 });

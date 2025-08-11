@@ -621,6 +621,183 @@ const downloadDoctorPatientsPDF = async (req, res) => {
   }
 };
 
+// API to get patient mood data for doctor
+const getPatientMoodData = async (req, res) => {
+  try {
+    const { docId } = req.body;
+    const { patientId, period = "30" } = req.query; // period in days
+
+    // Verify the doctor has appointments with this patient
+    const appointment = await appointmentModel.findOne({
+      docId,
+      userId: patientId,
+    });
+
+    if (!appointment) {
+      return res.status(403).json({
+        success: false,
+        message: "You don't have permission to view this patient's data",
+      });
+    }
+
+    // Get patient information
+    const patient = await userModel.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({
+        success: false,
+        message: "Patient not found",
+      });
+    }
+
+    // Check if mood tracking is enabled for this patient
+    if (!patient.moodTracking?.enabled) {
+      return res.status(200).json({
+        success: true,
+        patient: {
+          _id: patient._id,
+          name: patient.name,
+          email: patient.email,
+          image: patient.image,
+        },
+        moodData: null,
+        message: "Mood tracking is not enabled for this patient",
+      });
+    }
+
+    // Import mood tracking models
+    const { MoodEntry, AIAnalysis } = await import("../models/moodTrackingModel.js");
+
+    // Calculate date range
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - parseInt(period));
+
+    // Get mood entries for the specified period
+    const moodEntries = await MoodEntry.find({
+      userId: patientId,
+      timestamp: { $gte: startDate, $lte: endDate },
+    }).sort({ timestamp: -1 });
+
+    // Get latest AI analysis
+    const latestAnalysis = await AIAnalysis.findOne({
+      userId: patientId,
+    }).sort({ analysisDate: -1 });
+
+    // Calculate basic analytics
+    const analytics = calculatePatientMoodAnalytics(moodEntries);
+
+    // Get appointment history with this doctor
+    const appointments = await appointmentModel.find({
+      docId,
+      userId: patientId,
+    }).sort({ slotDate: -1 });
+
+    res.status(200).json({
+      success: true,
+      patient: {
+        _id: patient._id,
+        name: patient.name,
+        email: patient.email,
+        image: patient.image,
+        phone: patient.phone,
+        gender: patient.gender,
+        dob: patient.dob,
+        moodTrackingEnabled: patient.moodTracking?.enabled,
+        aiAnalysisConsent: patient.moodTracking?.aiAnalysisConsent,
+      },
+      moodData: {
+        entries: moodEntries,
+        analytics,
+        aiAnalysis: latestAnalysis,
+        totalEntries: moodEntries.length,
+        period: parseInt(period),
+        dateRange: {
+          start: startDate,
+          end: endDate,
+        },
+      },
+      appointments: {
+        total: appointments.length,
+        completed: appointments.filter(app => app.isCompleted).length,
+        cancelled: appointments.filter(app => app.cancelled).length,
+        pending: appointments.filter(app => !app.isCompleted && !app.cancelled).length,
+        history: appointments.slice(0, 10), // Last 10 appointments
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ success: false, message: `Server error: ${error.message}` });
+  }
+};
+
+// Helper function to calculate patient mood analytics
+const calculatePatientMoodAnalytics = (moodEntries) => {
+  if (moodEntries.length === 0) {
+    return {
+      basicStats: {
+        totalEntries: 0,
+        averageScore: 0,
+        minScore: 0,
+        maxScore: 0,
+      },
+      moodDistribution: {},
+      trend: "no_data",
+      trendStrength: 0,
+      moodVariability: 0,
+      moodStability: 0,
+    };
+  }
+
+  const scores = moodEntries.map(entry => entry.moodScore);
+  const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  const minScore = Math.min(...scores);
+  const maxScore = Math.max(...scores);
+
+  // Calculate mood distribution
+  const moodDistribution = moodEntries.reduce((acc, entry) => {
+    acc[entry.moodLabel] = (acc[entry.moodLabel] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Calculate trend
+  const sortedEntries = [...moodEntries].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  const firstHalf = sortedEntries.slice(0, Math.floor(sortedEntries.length / 2));
+  const secondHalf = sortedEntries.slice(Math.floor(sortedEntries.length / 2));
+
+  const firstHalfAvg = firstHalf.length > 0 ? firstHalf.reduce((sum, entry) => sum + entry.moodScore, 0) / firstHalf.length : 0;
+  const secondHalfAvg = secondHalf.length > 0 ? secondHalf.reduce((sum, entry) => sum + entry.moodScore, 0) / secondHalf.length : 0;
+
+  let trend = "stable";
+  if (secondHalfAvg > firstHalfAvg + 0.5) trend = "improving";
+  else if (secondHalfAvg < firstHalfAvg - 0.5) trend = "declining";
+
+  // Calculate trend strength
+  const trendStrength = Math.abs(secondHalfAvg - firstHalfAvg) / 5; // Normalize to 0-1
+
+  // Calculate mood variability
+  const variance = scores.reduce((sum, score) => sum + Math.pow(score - averageScore, 2), 0) / scores.length;
+  const moodVariability = Math.sqrt(variance) / 5; // Normalize to 0-1
+
+  // Calculate mood stability (inverse of variability)
+  const moodStability = Math.max(0, 1 - moodVariability);
+
+  return {
+    basicStats: {
+      totalEntries: moodEntries.length,
+      averageScore: parseFloat(averageScore.toFixed(2)),
+      minScore,
+      maxScore,
+    },
+    moodDistribution,
+    trend,
+    trendStrength: parseFloat(trendStrength.toFixed(3)),
+    moodVariability: parseFloat(moodVariability.toFixed(3)),
+    moodStability: parseFloat(moodStability.toFixed(3)),
+  };
+};
+
 export {
   changeAvailability,
   doctorList,
@@ -633,4 +810,5 @@ export {
   updateDoctorProfile,
   getDoctorPatients,
   downloadDoctorPatientsPDF,
+  getPatientMoodData,
 };

@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { WordRotate } from "./WordRotateComp";
 import { motion, AnimatePresence } from "framer-motion";
 import { clearAllTokens } from "../utils/tokenUtils";
+import NotificationBell from "./NotificationBell";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -118,6 +119,7 @@ const Navbar = () => {
               { path: "/doctors", label: "EXPERTS" },
               { path: "/ourTeam", label: "OUR TEAM" },
               { path: "/moodtracker", label: "MOOD TRACKER" },
+              // { path: "/mood-dashboard", label: "MOOD DASHBOARD" },
               { path: "/mood-analysis", label: "ASSESSMENT" },
               { path: "/about", label: "ABOUT" },
             ].map((link) => (
@@ -149,100 +151,105 @@ const Navbar = () => {
           {/* Auth Buttons/Profile */}
           <div className="flex items-center space-x-4">
             {token ? (
-              <div className="relative profile-menu-container">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="flex items-center gap-2 cursor-pointer p-2 rounded-full hover:bg-white/50 transition-all duration-300"
-                  onClick={() => setShowProfileMenu(!showProfileMenu)}
-                >
-                  {userData ? (
-                    <img
-                      className="w-8 h-8 rounded-full object-cover border-2 border-purple-200"
-                      src={userData.image || "profile_pic.png"}
-                      alt="profile"
-                      onError={(e) => {
-                        e.target.src = "profile_pic.png";
-                      }}
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center">
-                      <span className="text-purple-600 text-sm font-medium">
-                        {isLoadingUser ? "..." : "U"}
-                      </span>
-                    </div>
-                  )}
-                  <ChevronDown
-                    size={16}
-                    className={`text-purple-600 transition-transform duration-300 ${
-                      showProfileMenu ? "rotate-180" : ""
-                    }`}
-                  />
-                </motion.div>
+              <>
+                {/* Notification Bell */}
+                {/* <NotificationBell /> */}
 
-                <AnimatePresence>
-                  {showProfileMenu && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-purple-100/50 overflow-hidden"
-                    >
-                      <div className="p-2">
-                        <motion.div
-                          whileHover={{
-                            backgroundColor: "rgba(124, 58, 237, 0.1)",
-                          }}
-                          onClick={() => navigate("my-profile")}
-                          className="flex items-center px-3 py-2 rounded-xl cursor-pointer transition-all duration-200"
-                        >
-                          <span className="text-gray-700 font-medium">
-                            My Profile
-                          </span>
-                        </motion.div>
-                        <motion.div
-                          whileHover={{
-                            backgroundColor: "rgba(124, 58, 237, 0.1)",
-                          }}
-                          onClick={() => navigate("my-appointments")}
-                          className="flex items-center px-3 py-2 rounded-xl cursor-pointer transition-all duration-200"
-                        >
-                          <span className="text-gray-700 font-medium">
-                            My Appointments
-                          </span>
-                        </motion.div>
-                        <motion.div
-                          whileHover={{
-                            backgroundColor: "rgba(124, 58, 237, 0.1)",
-                          }}
-                          onClick={() => navigate("resources")}
-                          className="flex items-center px-3 py-2 rounded-xl cursor-pointer transition-all duration-200"
-                        >
-                          <span className="text-gray-700 font-medium">
-                            Self-Help Resources
-                          </span>
-                        </motion.div>
-                        <div className="border-t border-purple-100 my-2" />
-                        <motion.div
-                          whileHover={{
-                            backgroundColor: "rgba(239, 68, 68, 0.1)",
-                          }}
-                          onClick={logout}
-                          className="flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 group"
-                        >
-                          <span className="text-red-500 font-medium">
-                            Logout
-                          </span>
-                          <ArrowRight
-                            size={14}
-                            className="text-red-500 group-hover:translate-x-1 transition-transform duration-200"
-                          />
-                        </motion.div>
+                <div className="relative profile-menu-container">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className="flex items-center gap-2 cursor-pointer p-2 rounded-full hover:bg-white/50 transition-all duration-300"
+                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  >
+                    {userData ? (
+                      <img
+                        className="w-8 h-8 rounded-full object-cover border-2 border-purple-200"
+                        src={userData.image || "profile_pic.png"}
+                        alt="profile"
+                        onError={(e) => {
+                          e.target.src = "profile_pic.png";
+                        }}
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center">
+                        <span className="text-purple-600 text-sm font-medium">
+                          {isLoadingUser ? "..." : "U"}
+                        </span>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                    )}
+                    <ChevronDown
+                      size={16}
+                      className={`text-purple-600 transition-transform duration-300 ${
+                        showProfileMenu ? "rotate-180" : ""
+                      }`}
+                    />
+                  </motion.div>
+
+                  <AnimatePresence>
+                    {showProfileMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-purple-100/50 overflow-hidden"
+                      >
+                        <div className="p-2">
+                          <motion.div
+                            whileHover={{
+                              backgroundColor: "rgba(124, 58, 237, 0.1)",
+                            }}
+                            onClick={() => navigate("my-profile")}
+                            className="flex items-center px-3 py-2 rounded-xl cursor-pointer transition-all duration-200"
+                          >
+                            <span className="text-gray-700 font-medium">
+                              My Profile
+                            </span>
+                          </motion.div>
+                          <motion.div
+                            whileHover={{
+                              backgroundColor: "rgba(124, 58, 237, 0.1)",
+                            }}
+                            onClick={() => navigate("my-appointments")}
+                            className="flex items-center px-3 py-2 rounded-xl cursor-pointer transition-all duration-200"
+                          >
+                            <span className="text-gray-700 font-medium">
+                              My Appointments
+                            </span>
+                          </motion.div>
+                          <motion.div
+                            whileHover={{
+                              backgroundColor: "rgba(124, 58, 237, 0.1)",
+                            }}
+                            onClick={() => navigate("resources")}
+                            className="flex items-center px-3 py-2 rounded-xl cursor-pointer transition-all duration-200"
+                          >
+                            <span className="text-gray-700 font-medium">
+                              Self-Help Resources
+                            </span>
+                          </motion.div>
+                          <div className="border-t border-purple-100 my-2" />
+                          <motion.div
+                            whileHover={{
+                              backgroundColor: "rgba(239, 68, 68, 0.1)",
+                            }}
+                            onClick={logout}
+                            className="flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 group"
+                          >
+                            <span className="text-red-500 font-medium">
+                              Logout
+                            </span>
+                            <ArrowRight
+                              size={14}
+                              className="text-red-500 group-hover:translate-x-1 transition-transform duration-200"
+                            />
+                          </motion.div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </>
             ) : (
               <div className="hidden sm:flex items-center space-x-3">
                 <motion.button

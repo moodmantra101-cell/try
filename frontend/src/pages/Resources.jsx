@@ -56,7 +56,7 @@ const Resources = () => {
 
       if (data.success) {
         const posts = data.data.posts.map((post) => ({
-          id: post._id,
+          id: post.slug, // Use slug instead of _id for navigation
           title: post.title,
           author: post.author,
           excerpt: post.excerpt || post.content.substring(0, 150) + "...",
@@ -538,7 +538,7 @@ const Resources = () => {
                           >
                             {post.title}
                           </CardTitle>
-                          
+
                           <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                             <div className="flex items-center gap-1">
                               <FaCalendarAlt className="text-purple-400" />

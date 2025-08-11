@@ -15,6 +15,13 @@ const blogPostSchema = new mongoose.Schema({
     required: true,
     maxlength: 100,
   },
+  slug: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
+  },
   content: {
     type: String,
     required: true,
@@ -91,7 +98,7 @@ const blogPostSchema = new mongoose.Schema({
   },
 });
 
-// Update the updatedAt field before saving
+// Update timestamp and generate excerpt
 blogPostSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
 
@@ -110,6 +117,7 @@ blogPostSchema.pre("save", function (next) {
 blogPostSchema.index({ status: 1, category: 1 });
 blogPostSchema.index({ authorId: 1, status: 1 });
 blogPostSchema.index({ submittedAt: -1 });
+blogPostSchema.index({ slug: 1 }); // Index for slug-based queries
 
 const blogPostModel =
   mongoose.models.blogPost || mongoose.model("blogPost", blogPostSchema);
