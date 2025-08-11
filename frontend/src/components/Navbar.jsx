@@ -17,6 +17,19 @@ const Navbar = () => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [activeLink, setActiveLink] = useState("");
 
+  // Handle body scroll lock when mobile menu is open
+  useEffect(() => {
+    if (showMenu) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showMenu]);
+
   const logout = () => {
     setToken(null);
     clearAllTokens();
@@ -149,7 +162,7 @@ const Navbar = () => {
           </nav>
 
           {/* Auth Buttons/Profile */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {token ? (
               <>
                 {/* Notification Bell */}
@@ -158,12 +171,12 @@ const Navbar = () => {
                 <div className="relative profile-menu-container">
                   <motion.div
                     whileHover={{ scale: 1.05 }}
-                    className="flex items-center gap-2 cursor-pointer p-2 rounded-full hover:bg-white/50 transition-all duration-300"
+                    className="flex items-center gap-1.5 sm:gap-2 cursor-pointer p-1.5 sm:p-2 rounded-full hover:bg-white/50 transition-all duration-300"
                     onClick={() => setShowProfileMenu(!showProfileMenu)}
                   >
                     {userData ? (
                       <img
-                        className="w-8 h-8 rounded-full object-cover border-2 border-purple-200"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-purple-200"
                         src={userData.image || "profile_pic.png"}
                         alt="profile"
                         onError={(e) => {
@@ -171,15 +184,15 @@ const Navbar = () => {
                         }}
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center">
-                        <span className="text-purple-600 text-sm font-medium">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-200 flex items-center justify-center">
+                        <span className="text-purple-600 text-xs sm:text-sm font-medium">
                           {isLoadingUser ? "..." : "U"}
                         </span>
                       </div>
                     )}
                     <ChevronDown
-                      size={16}
-                      className={`text-purple-600 transition-transform duration-300 ${
+                      size={14}
+                      className={`text-purple-600 transition-transform duration-300 hidden sm:block ${
                         showProfileMenu ? "rotate-180" : ""
                       }`}
                     />
@@ -192,17 +205,27 @@ const Navbar = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-purple-100/50 overflow-hidden"
+                        className="absolute right-0 mt-2 w-48 sm:w-56 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-purple-100/50 overflow-hidden z-50"
+                        style={{
+                          maxWidth: "calc(100vw - 2rem)",
+                          right: "0",
+                          left: "auto",
+                          minWidth: "200px",
+                          transform: "translateX(0)",
+                        }}
                       >
                         <div className="p-2">
                           <motion.div
                             whileHover={{
                               backgroundColor: "rgba(124, 58, 237, 0.1)",
                             }}
-                            onClick={() => navigate("my-profile")}
-                            className="flex items-center px-3 py-2 rounded-xl cursor-pointer transition-all duration-200"
+                            onClick={() => {
+                              navigate("my-profile");
+                              setShowProfileMenu(false);
+                            }}
+                            className="flex items-center px-3 py-3 sm:py-2.5 rounded-xl cursor-pointer transition-all duration-200 touch-manipulation"
                           >
-                            <span className="text-gray-700 font-medium">
+                            <span className="text-gray-700 font-medium text-sm sm:text-base">
                               My Profile
                             </span>
                           </motion.div>
@@ -210,10 +233,13 @@ const Navbar = () => {
                             whileHover={{
                               backgroundColor: "rgba(124, 58, 237, 0.1)",
                             }}
-                            onClick={() => navigate("my-appointments")}
-                            className="flex items-center px-3 py-2 rounded-xl cursor-pointer transition-all duration-200"
+                            onClick={() => {
+                              navigate("my-appointments");
+                              setShowProfileMenu(false);
+                            }}
+                            className="flex items-center px-3 py-3 sm:py-2.5 rounded-xl cursor-pointer transition-all duration-200 touch-manipulation"
                           >
-                            <span className="text-gray-700 font-medium">
+                            <span className="text-gray-700 font-medium text-sm sm:text-base">
                               My Appointments
                             </span>
                           </motion.div>
@@ -221,10 +247,13 @@ const Navbar = () => {
                             whileHover={{
                               backgroundColor: "rgba(124, 58, 237, 0.1)",
                             }}
-                            onClick={() => navigate("resources")}
-                            className="flex items-center px-3 py-2 rounded-xl cursor-pointer transition-all duration-200"
+                            onClick={() => {
+                              navigate("resources");
+                              setShowProfileMenu(false);
+                            }}
+                            className="flex items-center px-3 py-3 sm:py-2.5 rounded-xl cursor-pointer transition-all duration-200 touch-manipulation"
                           >
-                            <span className="text-gray-700 font-medium">
+                            <span className="text-gray-700 font-medium text-sm sm:text-base">
                               Self-Help Resources
                             </span>
                           </motion.div>
@@ -233,10 +262,13 @@ const Navbar = () => {
                             whileHover={{
                               backgroundColor: "rgba(239, 68, 68, 0.1)",
                             }}
-                            onClick={logout}
-                            className="flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 group"
+                            onClick={() => {
+                              logout();
+                              setShowProfileMenu(false);
+                            }}
+                            className="flex items-center justify-between px-3 py-3 sm:py-2.5 rounded-xl cursor-pointer transition-all duration-200 group touch-manipulation"
                           >
-                            <span className="text-red-500 font-medium">
+                            <span className="text-red-500 font-medium text-sm sm:text-base">
                               Logout
                             </span>
                             <ArrowRight
@@ -286,7 +318,7 @@ const Navbar = () => {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowMenu(true)}
-              className="lg:hidden p-2 rounded-full hover:bg-white/50 transition-all duration-300"
+              className="lg:hidden p-2 rounded-full hover:bg-white/50 transition-all duration-300 z-50"
             >
               <Menu size={24} className="text-purple-600" />
             </motion.button>
@@ -302,15 +334,25 @@ const Navbar = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]"
               onClick={() => setShowMenu(false)}
+              onTouchMove={(e) => e.preventDefault()}
             />
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 h-full w-80 bg-white/95 backdrop-blur-xl shadow-2xl z-50 p-6"
+              className="fixed right-0 top-0 h-full w-80 bg-white/95 backdrop-blur-xl shadow-2xl z-[70] p-6 overflow-y-auto touch-pan-y"
+              style={{
+                position: "fixed",
+                top: 0,
+                right: 0,
+                height: "100vh",
+                width: "320px",
+                maxWidth: "85vw",
+              }}
+              onTouchMove={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-xl font-bold text-gray-900">Menu</h2>

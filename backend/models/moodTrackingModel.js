@@ -257,16 +257,70 @@ const moodGoalSchema = new mongoose.Schema({
   ],
 });
 
-// Indexes for better query performance
-moodEntrySchema.index({ userId: 1, timestamp: -1 });
-moodEntrySchema.index({ userId: 1, moodScore: 1 });
-moodEntrySchema.index({ userId: 1, moodLabel: 1 });
+// Add comprehensive indexes for better query performance
 
-aiAnalysisSchema.index({ userId: 1, analysisDate: -1 });
-aiAnalysisSchema.index({ userId: 1, analysisType: 1 });
+// MoodEntry indexes
+moodEntrySchema.index({ userId: 1, timestamp: -1 }); // For user's mood entries sorted by date
+moodEntrySchema.index({ userId: 1, moodScore: 1 }); // For mood score analysis
+moodEntrySchema.index({ userId: 1, moodLabel: 1 }); // For mood label filtering
+moodEntrySchema.index({ timestamp: -1 }); // For all mood entries sorted by date
+moodEntrySchema.index({ moodScore: 1 }); // For score-based queries
+moodEntrySchema.index({ moodLabel: 1 }); // For mood label queries
+moodEntrySchema.index({ isPublic: 1 }); // For public mood entries
+moodEntrySchema.index({ stressLevel: 1 }); // For stress level analysis
+moodEntrySchema.index({ energyLevel: 1 }); // For energy level analysis
+moodEntrySchema.index({ sleepHours: 1 }); // For sleep analysis
 
-moodGoalSchema.index({ userId: 1, isActive: 1 });
-moodGoalSchema.index({ userId: 1, startDate: -1 });
+// Compound indexes for MoodEntry
+moodEntrySchema.index({ userId: 1, moodScore: 1, timestamp: -1 }); // For user's mood trends
+moodEntrySchema.index({ userId: 1, moodLabel: 1, timestamp: -1 }); // For user's mood patterns
+moodEntrySchema.index({ userId: 1, isPublic: 1, timestamp: -1 }); // For user's public entries
+moodEntrySchema.index({ moodLabel: 1, timestamp: -1 }); // For mood label trends
+moodEntrySchema.index({ userId: 1, stressLevel: 1, timestamp: -1 }); // For stress analysis
+moodEntrySchema.index({ userId: 1, energyLevel: 1, timestamp: -1 }); // For energy analysis
+moodEntrySchema.index({ userId: 1, sleepHours: 1, timestamp: -1 }); // For sleep patterns
+
+// AIAnalysis indexes
+aiAnalysisSchema.index({ userId: 1, analysisDate: -1 }); // For user's AI analysis history
+aiAnalysisSchema.index({ userId: 1, analysisType: 1 }); // For specific analysis types
+aiAnalysisSchema.index({ analysisDate: -1 }); // For all analysis sorted by date
+aiAnalysisSchema.index({ analysisType: 1 }); // For analysis type queries
+aiAnalysisSchema.index({ "riskAssessment.overallRisk": 1 }); // For risk assessment queries
+
+// Compound indexes for AIAnalysis
+aiAnalysisSchema.index({ userId: 1, analysisType: 1, analysisDate: -1 }); // For user's analysis by type
+aiAnalysisSchema.index({ analysisType: 1, analysisDate: -1 }); // For analysis trends
+aiAnalysisSchema.index({ userId: 1, "riskAssessment.overallRisk": 1 }); // For user's risk assessment
+
+// MoodGoal indexes
+moodGoalSchema.index({ userId: 1, isActive: 1 }); // For user's active goals
+moodGoalSchema.index({ userId: 1, startDate: -1 }); // For user's goals sorted by start date
+moodGoalSchema.index({ isActive: 1 }); // For all active goals
+moodGoalSchema.index({ targetFrequency: 1 }); // For frequency-based queries
+moodGoalSchema.index({ "progress.currentStreak": -1 }); // For streak-based sorting
+
+// Compound indexes for MoodGoal
+moodGoalSchema.index({ userId: 1, isActive: 1, startDate: -1 }); // For user's active goals sorted
+moodGoalSchema.index({ isActive: 1, targetFrequency: 1 }); // For active goals by frequency
+moodGoalSchema.index({ userId: 1, "progress.currentStreak": -1 }); // For user's goals by streak
+
+// Text indexes for search functionality
+moodEntrySchema.index({
+  textFeedback: "text",
+  tags: "text",
+});
+
+aiAnalysisSchema.index({
+  "recommendations.title": "text",
+  "recommendations.description": "text",
+  "patterns.triggers.factor": "text",
+  "patterns.positiveActivities.activity": "text",
+});
+
+moodGoalSchema.index({
+  title: "text",
+  description: "text",
+});
 
 // Create models
 const MoodEntry =

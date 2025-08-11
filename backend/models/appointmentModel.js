@@ -36,6 +36,37 @@ const appointmentSchema = new mongoose.Schema({
   consentGiven: { type: Boolean, required: true, default: false },
 });
 
+// Add indexes for better query performance
+appointmentSchema.index({ userId: 1 }); // For user's appointment history
+appointmentSchema.index({ docId: 1 }); // For doctor's appointment list
+appointmentSchema.index({ date: -1 }); // For sorting by appointment date (newest first)
+appointmentSchema.index({ slotDate: 1 }); // For date-based queries
+appointmentSchema.index({ cancelled: 1 }); // For filtering cancelled appointments
+appointmentSchema.index({ payment: 1 }); // For payment status queries
+appointmentSchema.index({ isCompleted: 1 }); // For completed appointment queries
+appointmentSchema.index({ sessionType: 1 }); // For session type filtering
+appointmentSchema.index({ consentGiven: 1 }); // For consent status queries
+
+// Compound indexes for common query patterns
+appointmentSchema.index({ userId: 1, date: -1 }); // For user's appointment history sorted by date
+appointmentSchema.index({ docId: 1, date: -1 }); // For doctor's appointments sorted by date
+appointmentSchema.index({ docId: 1, cancelled: 1 }); // For doctor's active appointments
+appointmentSchema.index({ userId: 1, cancelled: 1 }); // For user's active appointments
+appointmentSchema.index({ docId: 1, isCompleted: 1 }); // For doctor's completed appointments
+appointmentSchema.index({ userId: 1, isCompleted: 1 }); // For user's completed appointments
+appointmentSchema.index({ slotDate: 1, slotTime: 1 }); // For time slot availability checks
+appointmentSchema.index({ docId: 1, slotDate: 1, slotTime: 1 }); // For doctor's specific time slot queries
+appointmentSchema.index({ payment: 1, cancelled: 1 }); // For payment analytics
+appointmentSchema.index({ sessionType: 1, isCompleted: 1 }); // For session type analytics
+
+// Text index for search functionality
+appointmentSchema.index({
+  reasonForVisit: "text",
+  briefNotes: "text",
+  "userData.name": "text",
+  "docData.name": "text",
+});
+
 const appointmentModel =
   mongoose.models.appointment ||
   mongoose.model("appointment", appointmentSchema);

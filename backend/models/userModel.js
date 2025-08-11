@@ -48,6 +48,24 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+// Add indexes for better query performance
+// Note: email and googleId already have unique indexes from schema definition
+userSchema.index({ joinedDate: -1 }); // For sorting by join date (newest first)
+userSchema.index({ "moodTracking.enabled": 1 }); // For filtering users with mood tracking
+userSchema.index({ "moodTracking.aiAnalysisConsent": 1 }); // For AI analysis consent queries
+userSchema.index({ emailVerified: 1 }); // For email verification status queries
+userSchema.index({ isGoogleUser: 1 }); // For distinguishing Google vs regular users
+userSchema.index({ phone: 1 }); // For phone number lookups
+userSchema.index({ name: 1 }); // For name-based searches
+
+// Compound indexes for common query patterns
+userSchema.index({ email: 1, isGoogleUser: 1 }); // For login queries
+userSchema.index({
+  "moodTracking.enabled": 1,
+  "moodTracking.aiAnalysisConsent": 1,
+}); // For mood tracking analytics
+userSchema.index({ joinedDate: -1, "moodTracking.enabled": 1 }); // For user analytics
+
 const userModel = mongoose.models.user || mongoose.model("user", userSchema);
 
 export default userModel;

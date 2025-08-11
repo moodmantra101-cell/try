@@ -113,11 +113,38 @@ blogPostSchema.pre("save", function (next) {
   next();
 });
 
-// Index for better query performance
-blogPostSchema.index({ status: 1, category: 1 });
-blogPostSchema.index({ authorId: 1, status: 1 });
-blogPostSchema.index({ submittedAt: -1 });
-blogPostSchema.index({ slug: 1 }); // Index for slug-based queries
+// Add comprehensive indexes for better query performance
+blogPostSchema.index({ status: 1, category: 1 }); // For filtering by status and category
+blogPostSchema.index({ authorId: 1, status: 1 }); // For author's posts by status
+blogPostSchema.index({ submittedAt: -1 }); // For sorting by submission date
+// Note: slug already has unique index from schema definition
+blogPostSchema.index({ publishedAt: -1 }); // For sorting published posts by date
+blogPostSchema.index({ updatedAt: -1 }); // For sorting by update date
+blogPostSchema.index({ isFeatured: 1 }); // For featured posts
+blogPostSchema.index({ isAnonymous: 1 }); // For anonymous posts
+blogPostSchema.index({ likes: -1 }); // For sorting by likes
+blogPostSchema.index({ views: -1 }); // For sorting by views
+blogPostSchema.index({ comments: -1 }); // For sorting by comments
+blogPostSchema.index({ category: 1 }); // For category-based queries
+blogPostSchema.index({ status: 1 }); // For status-based queries
+blogPostSchema.index({ author: 1 }); // For author-based queries
+
+// Compound indexes for common query patterns
+blogPostSchema.index({ status: 1, publishedAt: -1 }); // For approved posts sorted by publish date
+blogPostSchema.index({ status: 1, isFeatured: 1 }); // For featured approved posts
+blogPostSchema.index({ category: 1, status: 1, publishedAt: -1 }); // For category posts sorted by date
+blogPostSchema.index({ authorId: 1, submittedAt: -1 }); // For author's posts sorted by submission
+blogPostSchema.index({ status: 1, submittedAt: -1 }); // For pending posts sorted by submission
+blogPostSchema.index({ isFeatured: 1, publishedAt: -1 }); // For featured posts sorted by date
+blogPostSchema.index({ category: 1, isFeatured: 1 }); // For featured posts by category
+
+// Text index for search functionality
+blogPostSchema.index({
+  title: "text",
+  content: "text",
+  excerpt: "text",
+  tags: "text",
+});
 
 const blogPostModel =
   mongoose.models.blogPost || mongoose.model("blogPost", blogPostSchema);

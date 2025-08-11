@@ -95,12 +95,42 @@ const notificationSchema = new mongoose.Schema(
   }
 );
 
-// Indexes for efficient querying
-notificationSchema.index({ userId: 1, status: 1 });
-notificationSchema.index({ userId: 1, scheduledFor: 1 });
-notificationSchema.index({ userId: 1, readAt: 1 });
-notificationSchema.index({ type: 1, status: 1 });
-notificationSchema.index({ scheduledFor: 1, status: "pending" });
+// Add comprehensive indexes for better query performance
+notificationSchema.index({ userId: 1, status: 1 }); // For user's notifications by status
+notificationSchema.index({ userId: 1, scheduledFor: 1 }); // For user's scheduled notifications
+notificationSchema.index({ userId: 1, readAt: 1 }); // For user's read/unread notifications
+notificationSchema.index({ type: 1, status: 1 }); // For notification type and status
+notificationSchema.index({ scheduledFor: 1, status: "pending" }); // For pending notifications
+notificationSchema.index({ userId: 1 }); // For all user notifications
+notificationSchema.index({ status: 1 }); // For status-based queries
+notificationSchema.index({ type: 1 }); // For type-based queries
+notificationSchema.index({ priority: 1 }); // For priority-based queries
+notificationSchema.index({ category: 1 }); // For category-based queries
+notificationSchema.index({ createdAt: -1 }); // For sorting by creation date
+notificationSchema.index({ sentAt: -1 }); // For sorting by sent date
+notificationSchema.index({ readAt: -1 }); // For sorting by read date
+notificationSchema.index({ actionTaken: 1 }); // For action-based queries
+notificationSchema.index({ retryCount: 1 }); // For retry-based queries
+
+// Compound indexes for common query patterns
+notificationSchema.index({ userId: 1, type: 1 }); // For user's notifications by type
+notificationSchema.index({ userId: 1, priority: 1 }); // For user's notifications by priority
+notificationSchema.index({ userId: 1, category: 1 }); // For user's notifications by category
+notificationSchema.index({ userId: 1, actionTaken: 1 }); // For user's notifications by action
+notificationSchema.index({ status: 1, scheduledFor: 1 }); // For status and scheduling
+notificationSchema.index({ type: 1, priority: 1 }); // For type and priority
+notificationSchema.index({ category: 1, priority: 1 }); // For category and priority
+notificationSchema.index({ userId: 1, createdAt: -1 }); // For user's notifications sorted by date
+notificationSchema.index({ userId: 1, readAt: 1, createdAt: -1 }); // For unread notifications sorted
+notificationSchema.index({ status: 1, retryCount: 1 }); // For failed notifications with retries
+notificationSchema.index({ priority: 1, scheduledFor: 1 }); // For priority-based scheduling
+notificationSchema.index({ userId: 1, type: 1, status: 1 }); // For user's notifications by type and status
+
+// Text index for search functionality
+notificationSchema.index({
+  title: "text",
+  message: "text",
+});
 
 // Virtual for checking if notification is overdue
 notificationSchema.virtual("isOverdue").get(function () {
