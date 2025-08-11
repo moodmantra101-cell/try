@@ -73,3 +73,4 @@ const migrateSlugs = async () => {
 
 // Run the migration
 migrateSlugs();
+

@@ -34,6 +34,7 @@ const Login = () => {
         if (data.success && validateToken(data.token)) {
           localStorage.setItem("token", data.token);
           setToken(data.token);
+          // Don't show notification here - it will be shown in useEffect
         } else {
           toast.error("Invalid token received from server");
         }
@@ -45,6 +46,7 @@ const Login = () => {
         if (data.success && validateToken(data.token)) {
           localStorage.setItem("token", data.token);
           setToken(data.token);
+          // Don't show notification here - it will be shown in useEffect
         } else {
           toast.error("Invalid token received from server");
         }
@@ -72,7 +74,7 @@ const Login = () => {
       if (data.success && validateToken(data.token)) {
         localStorage.setItem("token", data.token);
         setToken(data.token);
-        toast.success("Google login successful!");
+        // Don't show notification here - it will be shown in useEffect
       } else {
         toast.error("Invalid token received from server");
       }
@@ -96,7 +98,7 @@ const Login = () => {
   useEffect(() => {
     if (token) {
       navigate("/");
-      toast.success("Login Successful.");
+      toast.success("Login successful! Welcome back.");
     }
 
     // Get form type from URL
