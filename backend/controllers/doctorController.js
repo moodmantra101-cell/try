@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
 import userModel from "../models/userModel.js";
 import PDFDocument from "pdfkit";
+import ExcelJS from "exceljs";
 
 const changeAvailability = async (req, res) => {
   try {
@@ -452,10 +453,10 @@ const downloadDoctorPatientsPDF = async (req, res) => {
       .text(`• Pending Appointments: ${pendingAppointments}`)
       .text(`• Cancelled Appointments: ${cancelledAppointments}`)
       .text(
-        `• Total Revenue (${periodText}): $${totalRevenue.toLocaleString()}`
+        `• Total Revenue (${periodText}): ₹${totalRevenue.toLocaleString()}`
       )
       .text(
-        `• Average Revenue per Patient: $${
+        `• Average Revenue per Patient: ₹${
           totalPatients > 0 ? (totalRevenue / totalPatients).toFixed(2) : 0
         }`
       )
@@ -555,7 +556,7 @@ const downloadDoctorPatientsPDF = async (req, res) => {
           .text(`• Total Appointments: ${patientTotalAppointments}`)
           .text(`• Completed: ${patientCompletedAppointments}`)
           .text(`• Cancelled: ${patientCancelledAppointments}`)
-          .text(`• Total Amount Paid: $${patientTotalAmount.toLocaleString()}`)
+          .text(`• Total Amount Paid: ₹${patientTotalAmount.toLocaleString()}`)
           .moveDown(0.5);
 
         // Recent appointments (last 5 from the selected period)
@@ -582,7 +583,7 @@ const downloadDoctorPatientsPDF = async (req, res) => {
               .fontSize(10)
               .font("Helvetica")
               .text(
-                `• ${appointmentDate} at ${app.slotTime} (${status}) - $${app.amount}`
+                `• ${appointmentDate} at ${app.slotTime} (${status}) - ₹${app.amount}`
               );
           });
         } else {
@@ -617,6 +618,282 @@ const downloadDoctorPatientsPDF = async (req, res) => {
     res.status(500).json({
       success: false,
       message: `Error generating PDF: ${error.message}`,
+    });
+  }
+};
+
+// API to download doctor patients report as Excel
+const downloadDoctorPatientsExcel = async (req, res) => {
+  try {
+    const { docId } = req.body; // Get from authenticated token via middleware
+    const { reportType = "30months" } = req.query;
+
+    // Calculate date based on report type
+    let startDate, periodText, periodDays;
+
+    switch (reportType) {
+      case "12months":
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 12);
+        periodText = "Last 12 Months";
+        periodDays = 365;
+        break;
+      case "6months":
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 6);
+        periodText = "Last 6 Months";
+        periodDays = 180;
+        break;
+      case "30months":
+      default:
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        periodText = "Last 30 Days";
+        periodDays = 30;
+        break;
+    }
+
+    const startDateTimestamp = startDate.getTime();
+
+    // Get doctor details
+    const doctor = await doctorModel.findById(docId).select("-password");
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    // Get all patients who have appointments with this doctor
+    const appointments = await appointmentModel.find({
+      docId,
+      date: { $gte: startDateTimestamp },
+    });
+
+    // Extract unique patient IDs
+    const patientIds = [...new Set(appointments.map((app) => app.userId))];
+
+    // Get detailed patient information
+    const uniquePatients = await Promise.all(
+      patientIds.map(async (patientId) => {
+        const patient = await userModel.findById(patientId).select("-password");
+        return patient;
+      })
+    );
+
+    // Filter out null values
+    const validPatients = uniquePatients.filter((patient) => patient !== null);
+
+    // Create Excel workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Patients Report");
+
+    // Set up headers
+    worksheet.columns = [
+      { header: "Patient Name", key: "name", width: 20 },
+      { header: "Email", key: "email", width: 25 },
+      { header: "Phone", key: "phone", width: 15 },
+      { header: "Gender", key: "gender", width: 10 },
+      { header: "Date of Birth", key: "dob", width: 15 },
+      { header: "Age", key: "age", width: 10 },
+      { header: "Joined Date", key: "joinedDate", width: 15 },
+      { header: "Address", key: "address", width: 30 },
+      { header: "Total Appointments", key: "totalAppointments", width: 15 },
+      {
+        header: "Completed Appointments",
+        key: "completedAppointments",
+        width: 20,
+      },
+      {
+        header: "Cancelled Appointments",
+        key: "cancelledAppointments",
+        width: 20,
+      },
+      { header: "Total Amount Paid", key: "totalAmount", width: 15 },
+      { header: "Last Appointment Date", key: "lastAppointment", width: 20 },
+      {
+        header: "Last Appointment Status",
+        key: "lastAppointmentStatus",
+        width: 20,
+      },
+    ];
+
+    // Style the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: "FFFFFF" } };
+    headerRow.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "4472C4" },
+    };
+    headerRow.alignment = { horizontal: "center", vertical: "middle" };
+
+    // Add data rows
+    validPatients.forEach((patient, index) => {
+      // Get appointments for this patient from the selected period
+      const patientAppointments = appointments.filter(
+        (app) => app.userId === patient._id.toString()
+      );
+
+      // Calculate patient statistics
+      const patientTotalAppointments = patientAppointments.length;
+      const patientCompletedAppointments = patientAppointments.filter(
+        (app) => app.isCompleted
+      ).length;
+      const patientCancelledAppointments = patientAppointments.filter(
+        (app) => app.cancelled
+      ).length;
+      const patientTotalAmount = patientAppointments
+        .filter((app) => app.isCompleted || app.payment)
+        .reduce((sum, app) => sum + app.amount, 0);
+
+      // Get last appointment details
+      const lastAppointment = patientAppointments
+        .sort((a, b) => b.date - a.date)
+        .find(() => true);
+
+      // Calculate age
+      const age = patient.dob
+        ? Math.floor(
+            (new Date() - new Date(patient.dob)) /
+              (365.25 * 24 * 60 * 60 * 1000)
+          )
+        : "N/A";
+
+      // Format address
+      const address = patient.address
+        ? typeof patient.address === "string"
+          ? patient.address
+          : `${patient.address.line1 || ""} ${
+              patient.address.line2 || ""
+            }`.trim()
+        : "Not provided";
+
+      // Add row data
+      worksheet.addRow({
+        name: patient.name,
+        email: patient.email,
+        phone: patient.phone,
+        gender: patient.gender || "Not specified",
+        dob: patient.dob
+          ? new Date(patient.dob).toLocaleDateString()
+          : "Not specified",
+        age: age,
+        joinedDate: new Date(patient.joinedDate).toLocaleDateString(),
+        address: address,
+        totalAppointments: patientTotalAppointments,
+        completedAppointments: patientCompletedAppointments,
+        cancelledAppointments: patientCancelledAppointments,
+        totalAmount: `₹${patientTotalAmount.toLocaleString()}`,
+        lastAppointment: lastAppointment
+          ? new Date(lastAppointment.date).toLocaleDateString()
+          : "No appointments",
+        lastAppointmentStatus: lastAppointment
+          ? lastAppointment.cancelled
+            ? "Cancelled"
+            : lastAppointment.isCompleted
+            ? "Completed"
+            : "Pending"
+          : "N/A",
+      });
+    });
+
+    // Add summary statistics worksheet
+    const summaryWorksheet = workbook.addWorksheet("Summary Statistics");
+
+    // Calculate summary statistics
+    const totalPatients = validPatients.length;
+    const totalAppointments = appointments.length;
+    const completedAppointments = appointments.filter(
+      (app) => app.isCompleted
+    ).length;
+    const cancelledAppointments = appointments.filter(
+      (app) => app.cancelled
+    ).length;
+    const pendingAppointments = appointments.filter(
+      (app) => !app.isCompleted && !app.cancelled
+    ).length;
+    const totalRevenue = appointments
+      .filter((app) => app.isCompleted || app.payment)
+      .reduce((sum, app) => sum + app.amount, 0);
+    const completionRate =
+      totalAppointments > 0
+        ? ((completedAppointments / totalAppointments) * 100).toFixed(1)
+        : 0;
+
+    // Add summary data
+    summaryWorksheet.columns = [
+      { header: "Metric", key: "metric", width: 30 },
+      { header: "Value", key: "value", width: 20 },
+    ];
+
+    const summaryHeaderRow = summaryWorksheet.getRow(1);
+    summaryHeaderRow.font = { bold: true, color: { argb: "FFFFFF" } };
+    summaryHeaderRow.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "4472C4" },
+    };
+
+    summaryWorksheet.addRow({ metric: "Report Period", value: periodText });
+    summaryWorksheet.addRow({ metric: "Doctor Name", value: doctor.name });
+    summaryWorksheet.addRow({ metric: "Speciality", value: doctor.speciality });
+    summaryWorksheet.addRow({ metric: "Total Patients", value: totalPatients });
+    summaryWorksheet.addRow({
+      metric: "Total Appointments",
+      value: totalAppointments,
+    });
+    summaryWorksheet.addRow({
+      metric: "Completed Appointments",
+      value: completedAppointments,
+    });
+    summaryWorksheet.addRow({
+      metric: "Pending Appointments",
+      value: pendingAppointments,
+    });
+    summaryWorksheet.addRow({
+      metric: "Cancelled Appointments",
+      value: cancelledAppointments,
+    });
+    summaryWorksheet.addRow({
+      metric: "Total Revenue",
+      value: `₹${totalRevenue.toLocaleString()}`,
+    });
+    summaryWorksheet.addRow({
+      metric: "Average Revenue per Patient",
+      value: `₹${
+        totalPatients > 0 ? (totalRevenue / totalPatients).toFixed(2) : 0
+      }`,
+    });
+    summaryWorksheet.addRow({
+      metric: "Appointment Completion Rate",
+      value: `${completionRate}%`,
+    });
+    summaryWorksheet.addRow({
+      metric: "Report Generated On",
+      value: new Date().toLocaleString(),
+    });
+
+    // Set response headers for Excel download
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="doctor-patients-${reportType}-${
+        new Date().toISOString().split("T")[0]
+      }.xlsx"`
+    );
+
+    // Write the workbook to the response
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("Error generating Excel:", error);
+    res.status(500).json({
+      success: false,
+      message: `Error generating Excel: ${error.message}`,
     });
   }
 };
@@ -665,7 +942,9 @@ const getPatientMoodData = async (req, res) => {
     }
 
     // Import mood tracking models
-    const { MoodEntry, AIAnalysis } = await import("../models/moodTrackingModel.js");
+    const { MoodEntry, AIAnalysis } = await import(
+      "../models/moodTrackingModel.js"
+    );
 
     // Calculate date range
     const endDate = new Date();
@@ -687,10 +966,12 @@ const getPatientMoodData = async (req, res) => {
     const analytics = calculatePatientMoodAnalytics(moodEntries);
 
     // Get appointment history with this doctor
-    const appointments = await appointmentModel.find({
-      docId,
-      userId: patientId,
-    }).sort({ slotDate: -1 });
+    const appointments = await appointmentModel
+      .find({
+        docId,
+        userId: patientId,
+      })
+      .sort({ slotDate: -1 });
 
     res.status(200).json({
       success: true,
@@ -718,9 +999,11 @@ const getPatientMoodData = async (req, res) => {
       },
       appointments: {
         total: appointments.length,
-        completed: appointments.filter(app => app.isCompleted).length,
-        cancelled: appointments.filter(app => app.cancelled).length,
-        pending: appointments.filter(app => !app.isCompleted && !app.cancelled).length,
+        completed: appointments.filter((app) => app.isCompleted).length,
+        cancelled: appointments.filter((app) => app.cancelled).length,
+        pending: appointments.filter(
+          (app) => !app.isCompleted && !app.cancelled
+        ).length,
         history: appointments.slice(0, 10), // Last 10 appointments
       },
     });
@@ -750,8 +1033,9 @@ const calculatePatientMoodAnalytics = (moodEntries) => {
     };
   }
 
-  const scores = moodEntries.map(entry => entry.moodScore);
-  const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  const scores = moodEntries.map((entry) => entry.moodScore);
+  const averageScore =
+    scores.reduce((sum, score) => sum + score, 0) / scores.length;
   const minScore = Math.min(...scores);
   const maxScore = Math.max(...scores);
 
@@ -762,12 +1046,25 @@ const calculatePatientMoodAnalytics = (moodEntries) => {
   }, {});
 
   // Calculate trend
-  const sortedEntries = [...moodEntries].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-  const firstHalf = sortedEntries.slice(0, Math.floor(sortedEntries.length / 2));
+  const sortedEntries = [...moodEntries].sort(
+    (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+  );
+  const firstHalf = sortedEntries.slice(
+    0,
+    Math.floor(sortedEntries.length / 2)
+  );
   const secondHalf = sortedEntries.slice(Math.floor(sortedEntries.length / 2));
 
-  const firstHalfAvg = firstHalf.length > 0 ? firstHalf.reduce((sum, entry) => sum + entry.moodScore, 0) / firstHalf.length : 0;
-  const secondHalfAvg = secondHalf.length > 0 ? secondHalf.reduce((sum, entry) => sum + entry.moodScore, 0) / secondHalf.length : 0;
+  const firstHalfAvg =
+    firstHalf.length > 0
+      ? firstHalf.reduce((sum, entry) => sum + entry.moodScore, 0) /
+        firstHalf.length
+      : 0;
+  const secondHalfAvg =
+    secondHalf.length > 0
+      ? secondHalf.reduce((sum, entry) => sum + entry.moodScore, 0) /
+        secondHalf.length
+      : 0;
 
   let trend = "stable";
   if (secondHalfAvg > firstHalfAvg + 0.5) trend = "improving";
@@ -777,7 +1074,9 @@ const calculatePatientMoodAnalytics = (moodEntries) => {
   const trendStrength = Math.abs(secondHalfAvg - firstHalfAvg) / 5; // Normalize to 0-1
 
   // Calculate mood variability
-  const variance = scores.reduce((sum, score) => sum + Math.pow(score - averageScore, 2), 0) / scores.length;
+  const variance =
+    scores.reduce((sum, score) => sum + Math.pow(score - averageScore, 2), 0) /
+    scores.length;
   const moodVariability = Math.sqrt(variance) / 5; // Normalize to 0-1
 
   // Calculate mood stability (inverse of variability)
@@ -810,5 +1109,6 @@ export {
   updateDoctorProfile,
   getDoctorPatients,
   downloadDoctorPatientsPDF,
+  downloadDoctorPatientsExcel,
   getPatientMoodData,
 };

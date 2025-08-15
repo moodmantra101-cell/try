@@ -128,8 +128,86 @@ const AppointmentForm = ({
 
       if (data.success) {
         toast.success(data.message);
-        onSuccess();
         onClose();
+
+        // Redirect to payment for the temporary reservation
+        try {
+          const paymentResponse = await axios.post(
+            `${backendUrl}/api/user/payment-razorpay`,
+            { tempReservationId: data.tempReservationId },
+            { headers: { token } }
+          );
+
+          if (paymentResponse.data.success) {
+            // Initialize Razorpay payment
+            const options = {
+              key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+              amount: paymentResponse.data.order.amount,
+              currency: paymentResponse.data.order.currency,
+              name: "Appointment Payment",
+              description: "Appointment Payment",
+              order_id: paymentResponse.data.order.id,
+              receipt: paymentResponse.data.order.receipt,
+              handler: async (response) => {
+                try {
+                  const verifyResponse = await axios.post(
+                    `${backendUrl}/api/user/verify-razorpay`,
+                    response,
+                    { headers: { token } }
+                  );
+                  if (verifyResponse.data.success) {
+                    toast.success(verifyResponse.data.message);
+                    onSuccess();
+                  }
+                } catch (error) {
+                  console.log(error);
+                  toast.error(
+                    error.response?.data?.message ||
+                      "Payment verification failed"
+                  );
+                }
+              },
+              modal: {
+                ondismiss: function () {
+                  toast.info("Payment cancelled");
+                  // Clean up the temporary reservation on payment cancellation
+                  axios
+                    .post(
+                      `${backendUrl}/api/user/cancel-payment`,
+                      { tempReservationId: data.tempReservationId },
+                      { headers: { token } }
+                    )
+                    .catch((error) => {
+                      console.log("Error cleaning up reservation:", error);
+                    });
+                },
+              },
+              prefill: {
+                name: userData?.name || "Patient Name",
+                email: userData?.email || "patient@example.com",
+              },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on("payment.failed", function (response) {
+              toast.error("Payment failed");
+              // Clean up the temporary reservation on payment failure
+              axios
+                .post(
+                  `${backendUrl}/api/user/cancel-payment`,
+                  { tempReservationId: data.tempReservationId },
+                  { headers: { token } }
+                )
+                .catch((error) => {
+                  console.log("Error cleaning up reservation:", error);
+                });
+            });
+            rzp.open();
+          }
+        } catch (error) {
+          console.log(error);
+          toast.error("Failed to initiate payment. Please try again.");
+        }
       } else {
         toast.error(data.message);
       }

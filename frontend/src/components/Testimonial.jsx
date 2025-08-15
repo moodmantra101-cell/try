@@ -248,9 +248,9 @@ const Testimonials = () => {
     fetchUserTestimonial();
   };
 
-  const RatingStars = ({ rating }) => {
+  const RatingStars = ({ rating, isWhite = false }) => {
     return (
-      <div className="flex mb-4">
+      <div className="flex">
         {[...Array(5)].map((_, i) => (
           <motion.div
             key={i}
@@ -259,8 +259,14 @@ const Testimonials = () => {
             transition={{ delay: i * 0.1, duration: 0.3 }}
           >
             <FaStar
-              className={`w-5 h-5 ${
-                i < rating ? "text-yellow-400" : "text-gray-300"
+              className={`w-4 h-4 ${
+                i < rating
+                  ? isWhite
+                    ? "text-yellow-300"
+                    : "text-yellow-400"
+                  : isWhite
+                  ? "text-white/40"
+                  : "text-gray-300"
               }`}
             />
           </motion.div>
@@ -382,13 +388,13 @@ const Testimonials = () => {
           ))}
         </motion.div>
 
-        {/* Enhanced Testimonials Grid */}
+        {/* Modern Testimonials Grid */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16"
         >
           {testimonials.map((testimonial, index) => (
             <motion.div
@@ -397,21 +403,18 @@ const Testimonials = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
               viewport={{ once: true }}
-              whileHover={{ y: -12, scale: 1.02 }}
-              className="group relative"
+              whileHover={{ y: -8, scale: 1.02 }}
+              className="group"
             >
-              <div
-                className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border border-purple-100 h-full relative overflow-hidden max-w-md"
-                style={{ zIndex: 30 }}
-              >
+              <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 h-[400px] flex flex-col">
                 {/* User Action Buttons - Only show for user's own testimonial */}
                 {testimonial.isUserTestimonial && (
-                  <div className="absolute top-4 right-4 flex gap-2 z-50">
+                  <div className="absolute top-3 right-3 flex gap-2 z-50">
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={handleEditStory}
-                      className="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg transition-colors duration-200"
+                      className="w-7 h-7 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center shadow-md transition-colors duration-200"
                       title="Edit your testimonial"
                     >
                       <FaEdit className="text-xs" />
@@ -420,7 +423,7 @@ const Testimonials = () => {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={handleDeleteStory}
-                      className="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-colors duration-200"
+                      className="w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition-colors duration-200"
                       title="Delete your testimonial"
                     >
                       <FaTrash className="text-xs" />
@@ -428,60 +431,78 @@ const Testimonials = () => {
                   </div>
                 )}
 
-                {/* Enhanced Background Pattern */}
-                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-50 to-pink-50 rounded-full -translate-y-20 translate-x-20 opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-full translate-y-12 -translate-x-12 opacity-40 group-hover:opacity-60 transition-opacity duration-300" />
+                {/* Header with gradient background */}
+                <div
+                  className={`bg-gradient-to-r ${testimonial.color} p-6 text-white relative flex-shrink-0`}
+                >
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
+                  <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-8 -translate-x-8" />
 
-                {/* Category Badge */}
-                <div className="mb-4">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                    <FaRegLightbulb className="mr-1" />
-                    {testimonial.category}
-                  </span>
+                  <div className="relative z-10">
+                    {/* Category Badge */}
+                    <div className="mb-3">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                        {testimonial.category}
+                      </span>
+                    </div>
+
+                    {/* Rating */}
+                    <div className="mb-4">
+                      <RatingStars rating={testimonial.rating} isWhite={true} />
+                    </div>
+
+                    {/* Quote Icon */}
+                    <div className="mb-4">
+                      <FaQuoteLeft className="text-2xl text-white/80" />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Rating */}
-                <div className="mb-6">
-                  <RatingStars rating={testimonial.rating} />
-                </div>
-
-                {/* Quote */}
-                <p className="text-gray-700 mb-8 text-lg leading-relaxed relative z-10 font-medium whitespace-normal break-words">
-                  "{testimonial.quote}"
-                </p>
-
-                {/* Session Info */}
-                <div className="mb-6 text-sm text-gray-500 font-medium">
-                  {testimonial.sessionCount} completed
-                </div>
-
-                {/* Enhanced Author Section */}
-                <div className="flex items-center gap-4 relative z-10">
-                  <div className="relative">
-                    <div
-                      className={`w-14 h-14 bg-gradient-to-br ${testimonial.color} rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                {/* Content Section */}
+                <div className="p-6 flex-1 flex flex-col">
+                  {/* Quote */}
+                  <div className="flex-1 mb-4">
+                    <p
+                      className="text-gray-700 text-base leading-relaxed font-medium"
+                      style={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 4,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
                     >
-                      {testimonial.avatar}
-                    </div>
-                    {/* Verified badge */}
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-md">
-                      <FaCheckCircle className="text-white text-xs" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-gray-900 text-lg">
-                      {testimonial.author}
+                      "{testimonial.quote}"
                     </p>
-                    <p className="text-sm text-gray-500">{testimonial.role}</p>
+                  </div>
+
+                  {/* Session Info */}
+                  <div className="mb-4 text-sm text-gray-500 font-medium flex items-center flex-shrink-0">
+                    <FaRegClock className="mr-2" />
+                    {testimonial.sessionCount} completed
+                  </div>
+
+                  {/* Author Section */}
+                  <div className="flex items-center gap-3 pt-4 border-t border-gray-100 flex-shrink-0">
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-bold text-sm">
+                        {testimonial.avatar}
+                      </div>
+                      {/* Verified badge */}
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                        <FaCheckCircle className="text-white text-xs" />
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900 text-sm">
+                        {testimonial.author}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {testimonial.role}
+                      </p>
+                    </div>
                   </div>
                 </div>
-
-                {/* Enhanced Hover Effect */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  whileHover={{ opacity: 1 }}
-                  className="absolute inset-0 bg-gradient-to-br from-purple-600/5 to-pink-600/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                />
               </div>
             </motion.div>
           ))}

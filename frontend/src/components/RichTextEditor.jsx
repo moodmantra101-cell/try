@@ -1,4 +1,4 @@
- import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   FaBold,
   FaItalic,
@@ -12,7 +12,6 @@ import {
   FaAlignRight,
   FaAlignJustify,
   FaImage,
-  FaUpload,
   FaSpinner,
 } from "react-icons/fa";
 
@@ -30,13 +29,12 @@ const RichTextEditor = ({
     bold: false,
     italic: false,
     underline: false,
-    heading: false,
-    list: false,
+    heading: null,
+    list: null,
     align: null,
   });
   const [cursorPosition, setCursorPosition] = useState(null);
   const updateTimeoutRef = useRef(null);
-  const resizeHandleRef = useRef(null);
   const resizingImageRef = useRef(null);
   const initialSizeRef = useRef({ width: 0, height: 0 });
   const initialPositionRef = useRef({ x: 0, y: 0 });
@@ -72,11 +70,9 @@ const RichTextEditor = ({
         selection.removeAllRanges();
         selection.addRange(range);
       } catch (error) {
-        // If cursor position is invalid, place cursor at the end
         const editor = editorRef.current;
         if (editor) {
           const range = document.createRange();
-          const selection = window.getSelection();
           range.selectNodeContents(editor);
           range.collapse(false);
           selection.removeAllRanges();
@@ -97,22 +93,19 @@ const RichTextEditor = ({
         const content = editorRef.current.innerHTML;
         onChange(content);
       }
-    }, 100); // 100ms delay
+    }, 100);
   };
 
   useEffect(() => {
     if (editorRef.current) {
-      // Only update if the content is actually different to avoid cursor jumping
       if (editorRef.current.innerHTML !== value) {
         editorRef.current.innerHTML = value;
-        // Ensure proper text direction
         editorRef.current.style.direction = "ltr";
         editorRef.current.style.textAlign = "left";
         editorRef.current.style.unicodeBidi = "normal";
       }
     }
 
-    // Cleanup timeout on unmount
     return () => {
       if (updateTimeoutRef.current) {
         clearTimeout(updateTimeoutRef.current);
@@ -128,70 +121,107 @@ const RichTextEditor = ({
 
   const updateContent = () => {
     if (editorRef.current) {
-      // Save cursor position before updating content
       saveCursorPosition();
-
       const content = editorRef.current.innerHTML;
       onChange(content);
       updateFormatState();
-
-      // Restore cursor position after a short delay to ensure DOM is updated
-      setTimeout(() => {
-        restoreCursorPosition();
-      }, 0);
+      setTimeout(restoreCursorPosition, 0);
     }
   };
 
   const updateFormatState = () => {
-    if (editorRef.current) {
-      const selection = window.getSelection();
-      const node = selection.anchorNode;
-      const parentElement = node?.parentElement;
+    if (!editorRef.current) return;
 
-      // Check if we're inside a heading
-      let isHeading = false;
-      if (parentElement) {
-        const headingTags = ["H1", "H2", "H3", "H4", "H5", "H6"];
-        isHeading = headingTags.includes(parentElement.tagName);
-      }
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
 
-      // Check if we're inside a list
-      let isList = false;
-      if (parentElement) {
-        const listParents = ["UL", "OL", "LI"];
-        let current = parentElement;
-        while (current) {
-          if (listParents.includes(current.tagName)) {
-            isList = true;
-            break;
-          }
-          current = current.parentElement;
+    const range = selection.getRangeAt(0);
+    const node = selection.anchorNode;
+    const parentElement = node?.parentElement;
+
+    // Check heading level
+    let currentHeading = null;
+    if (parentElement) {
+      const headingTags = ["H1", "H2", "H3", "H4", "H5"];
+      for (let i = 0; i < headingTags.length; i++) {
+        if (parentElement.tagName === headingTags[i]) {
+          currentHeading = `h${i + 1}`;
+          break;
         }
       }
-
-      // Check text alignment
-      let align = null;
-      if (parentElement) {
-        const alignments = ["left", "center", "right", "justify"];
-        let current = parentElement;
-        while (current) {
-          if (current.style && current.style.textAlign && alignments.includes(current.style.textAlign)) {
-            align = current.style.textAlign;
-            break;
-          }
-          current = current.parentElement;
-        }
-      }
-
-      setFormatState({
-        bold: document.queryCommandState("bold"),
-        italic: document.queryCommandState("italic"),
-        underline: document.queryCommandState("underline"),
-        heading: isHeading,
-        list: isList,
-        align,
-      });
     }
+
+    // Check list type
+    let currentList = null;
+    if (parentElement) {
+      let current = parentElement;
+      while (current) {
+        if (current.tagName === "UL") {
+          currentList = "ul";
+          break;
+        } else if (current.tagName === "OL") {
+          currentList = "ol";
+          break;
+        }
+        current = current.parentElement;
+      }
+    }
+
+    // Check alignment
+    let align = null;
+    if (parentElement) {
+      const alignments = ["left", "center", "right", "justify"];
+      let current = parentElement;
+      while (current) {
+        if (
+          current.style &&
+          current.style.textAlign &&
+          alignments.includes(current.style.textAlign)
+        ) {
+          align = current.style.textAlign;
+          break;
+        }
+        current = current.parentElement;
+      }
+    }
+
+    // Check inline styles
+    let bold = false;
+    let italic = false;
+    let underline = false;
+
+    if (range && !range.collapsed) {
+      const commonAncestor = range.commonAncestorContainer;
+      if (commonAncestor.nodeType === Node.ELEMENT_NODE) {
+        const element = commonAncestor;
+        bold = element.style.fontWeight === "bold" || 
+               document.queryCommandState("bold");
+        italic = element.style.fontStyle === "italic" || 
+                 document.queryCommandState("italic");
+        underline = element.style.textDecoration.includes("underline") || 
+                   document.queryCommandState("underline");
+      }
+    } else {
+      bold = document.queryCommandState("bold");
+      italic = document.queryCommandState("italic");
+      underline = document.queryCommandState("underline");
+
+      if (node && node.nodeType === Node.TEXT_NODE && parentElement) {
+        const computedStyle = window.getComputedStyle(parentElement);
+        bold = bold || computedStyle.fontWeight === "700" || computedStyle.fontWeight === "bold";
+        italic = italic || computedStyle.fontStyle === "italic";
+        underline = underline || computedStyle.textDecoration.includes("underline");
+      }
+    }
+
+    setFormatState({
+      bold,
+      italic,
+      underline,
+      heading: currentHeading,
+      list: currentList,
+      align,
+    });
   };
 
   const handlePaste = (e) => {
@@ -201,7 +231,6 @@ const RichTextEditor = ({
   };
 
   const handleKeyDown = (e) => {
-    // Handle keyboard shortcuts
     if (e.ctrlKey || e.metaKey) {
       switch (e.key.toLowerCase()) {
         case "b":
@@ -228,13 +257,13 @@ const RichTextEditor = ({
       }
     }
 
-    // Handle Enter + Shift for line break
     if (e.key === "Enter" && e.shiftKey) {
       e.preventDefault();
       execCommand("insertLineBreak");
     }
   };
 
+  // Image handling functions
   const handleImageSelect = async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -245,13 +274,11 @@ const RichTextEditor = ({
   const handleImageUpload = async (file) => {
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       alert("Please select a valid image file");
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert("Image size should be less than 5MB");
       return;
@@ -263,10 +290,8 @@ const RichTextEditor = ({
       let imageUrl;
 
       if (onImageUpload) {
-        // Use custom image upload function if provided
         imageUrl = await onImageUpload(file);
       } else {
-        // Create a local URL for preview
         imageUrl = URL.createObjectURL(file);
       }
 
@@ -274,7 +299,6 @@ const RichTextEditor = ({
         throw new Error("Failed to get image URL");
       }
 
-      // Insert image at cursor position
       const selection = window.getSelection();
       if (selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
@@ -290,7 +314,6 @@ const RichTextEditor = ({
         imgElement.style.display = "block";
         imgElement.style.position = "relative";
 
-        // Add resize handles container
         const resizeHandles = document.createElement("div");
         resizeHandles.className = "resize-handles";
         resizeHandles.style.position = "absolute";
@@ -302,7 +325,6 @@ const RichTextEditor = ({
         resizeHandles.style.cursor = "nwse-resize";
         resizeHandles.style.borderRadius = "2px 0 0 0";
 
-        // Add event listeners for resizing
         resizeHandles.addEventListener("mousedown", (e) => {
           e.stopPropagation();
           startResizing(imgElement, e);
@@ -315,26 +337,21 @@ const RichTextEditor = ({
           alert("Failed to load image. Please try again.");
         };
 
-        // Insert the image
         range.deleteContents();
         range.insertNode(imgElement);
 
-        // Add a line break after the image
         const br = document.createElement("br");
         range.setStartAfter(imgElement);
         range.insertNode(br);
 
-        // Move cursor after the image
         range.setStartAfter(br);
         range.collapse(true);
         selection.removeAllRanges();
         selection.addRange(range);
 
-        // Focus the editor and update content
         editorRef.current?.focus();
         updateContent();
       } else {
-        // If no selection, append to the end
         const imgElement = document.createElement("img");
         imgElement.src = imageUrl;
         imgElement.alt = "Uploaded image";
@@ -346,7 +363,6 @@ const RichTextEditor = ({
         imgElement.style.display = "block";
         imgElement.style.position = "relative";
 
-        // Add resize handles container
         const resizeHandles = document.createElement("div");
         resizeHandles.className = "resize-handles";
         resizeHandles.style.position = "absolute";
@@ -358,7 +374,6 @@ const RichTextEditor = ({
         resizeHandles.style.cursor = "nwse-resize";
         resizeHandles.style.borderRadius = "2px 0 0 0";
 
-        // Add event listeners for resizing
         resizeHandles.addEventListener("mousedown", (e) => {
           e.stopPropagation();
           startResizing(imgElement, e);
@@ -408,7 +423,6 @@ const RichTextEditor = ({
     const newWidth = initialSizeRef.current.width + deltaX;
     const newHeight = initialSizeRef.current.height + deltaY;
 
-    // Set minimum dimensions
     const minSize = 50;
     const finalWidth = Math.max(minSize, newWidth);
     const finalHeight = Math.max(minSize, newHeight);
@@ -418,7 +432,6 @@ const RichTextEditor = ({
     resizingImageRef.current.style.maxWidth = "none";
     resizingImageRef.current.style.objectFit = "contain";
 
-    // Update content
     updateContent();
   };
 
@@ -499,21 +512,57 @@ const RichTextEditor = ({
         <div className="flex items-center gap-1">
           <ToolbarButton
             icon={FaHeading}
+            onClick={() => execCommand("formatBlock", "<h1>")}
+            title="Heading 1"
+            isActive={formatState.heading === "h1"}
+          />
+          <button
+            type="button"
             onClick={() => execCommand("formatBlock", "<h2>")}
             title="Heading 2"
-            isActive={formatState.heading}
-          />
+            className={`p-2 rounded-md transition-colors ${
+              formatState.heading === "h2"
+                ? "bg-purple-100 text-purple-700 border border-purple-200"
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+            }`}
+          >
+            <span className="text-xs font-bold">H2</span>
+          </button>
           <button
             type="button"
             onClick={() => execCommand("formatBlock", "<h3>")}
             title="Heading 3"
             className={`p-2 rounded-md transition-colors ${
-              formatState.heading
+              formatState.heading === "h3"
                 ? "bg-purple-100 text-purple-700 border border-purple-200"
                 : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
             }`}
           >
             <span className="text-xs font-bold">H3</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => execCommand("formatBlock", "<h4>")}
+            title="Heading 4"
+            className={`p-2 rounded-md transition-colors ${
+              formatState.heading === "h4"
+                ? "bg-purple-100 text-purple-700 border border-purple-200"
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+            }`}
+          >
+            <span className="text-xs font-bold">H4</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => execCommand("formatBlock", "<h5>")}
+            title="Heading 5"
+            className={`p-2 rounded-md transition-colors ${
+              formatState.heading === "h5"
+                ? "bg-purple-100 text-purple-700 border border-purple-200"
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+            }`}
+          >
+            <span className="text-xs font-bold">H5</span>
           </button>
         </div>
 
@@ -525,13 +574,13 @@ const RichTextEditor = ({
             icon={FaListUl}
             onClick={() => execCommand("insertUnorderedList")}
             title="Bullet List"
-            isActive={formatState.list}
+            isActive={formatState.list === "ul"}
           />
           <ToolbarButton
             icon={FaListOl}
             onClick={() => execCommand("insertOrderedList")}
             title="Numbered List"
-            isActive={formatState.list}
+            isActive={formatState.list === "ol"}
           />
         </div>
 
@@ -614,26 +663,17 @@ const RichTextEditor = ({
           }
         }}
         onPaste={handlePaste}
-        onMouseUp={() => {
-          updateFormatState();
-          saveCursorPosition();
-        }}
-        onKeyUp={() => {
-          updateFormatState();
-          saveCursorPosition();
-        }}
+        onMouseUp={updateFormatState}
+        onKeyUp={updateFormatState}
         onKeyDown={(e) => {
           saveCursorPosition();
           handleKeyDown(e);
+          setTimeout(updateFormatState, 0);
         }}
+        onClick={updateFormatState}
         onFocus={() => {
           setIsFocused(true);
-          updateFormatState();
-          if (editorRef.current) {
-            editorRef.current.style.direction = "ltr";
-            editorRef.current.style.textAlign = "left";
-            editorRef.current.style.unicodeBidi = "normal";
-          }
+          setTimeout(updateFormatState, 50);
         }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -654,19 +694,59 @@ const RichTextEditor = ({
 
       {/* CSS for the editor */}
       <style jsx>{`
+        [contenteditable="true"] {
+          min-height: 150px;
+        }
+        [contenteditable="true"]:empty:before {
+          content: attr(data-placeholder);
+          color: #9ca3af;
+          pointer-events: none;
+          display: block;
+        }
         .editor-image {
           max-width: 100%;
           height: auto;
           border-radius: 0.5rem;
           margin: 1rem 0;
           display: block;
-          position: relative;
         }
-
-        .editor-image:hover .resize-handles {
-          opacity: 1;
+        [contenteditable="true"] h1 {
+          font-size: 2em;
+          font-weight: bold;
+          margin: 0.67em 0;
         }
-
+        [contenteditable="true"] h2 {
+          font-size: 1.5em;
+          font-weight: bold;
+          margin: 0.83em 0;
+        }
+        [contenteditable="true"] h3 {
+          font-size: 1.17em;
+          font-weight: bold;
+          margin: 1em 0;
+        }
+        [contenteditable="true"] h4 {
+          font-size: 1em;
+          font-weight: bold;
+          margin: 1.33em 0;
+        }
+        [contenteditable="true"] h5 {
+          font-size: 0.83em;
+          font-weight: bold;
+          margin: 1.67em 0;
+        }
+        [contenteditable="true"] ul,
+        [contenteditable="true"] ol {
+          padding-left: 2em;
+          margin: 1em 0;
+        }
+        [contenteditable="true"] blockquote {
+          border-left: 3px solid #ddd;
+          padding-left: 1em;
+          margin: 1em 0;
+          color: #666;
+          font-style: italic;
+        }
         .resize-handles {
           position: absolute;
           bottom: 0;
@@ -679,7 +759,6 @@ const RichTextEditor = ({
           opacity: 0;
           transition: opacity 0.2s;
         }
-
         .resize-handles:hover {
           opacity: 1;
         }
@@ -689,4 +768,3 @@ const RichTextEditor = ({
 };
 
 export default RichTextEditor;
-

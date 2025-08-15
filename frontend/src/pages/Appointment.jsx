@@ -162,6 +162,26 @@ const Appointment = () => {
         startTime.setHours(10, 0, 0, 0);
       }
 
+      let day = startTime.getDate().toString().padStart(2, "0");
+      let month = (startTime.getMonth() + 1).toString().padStart(2, "0");
+      let year = startTime.getFullYear();
+      const slotDate = day + "/" + month + "/" + year;
+
+      // Get real-time slot availability for this date
+      let unavailableSlots = [];
+      try {
+        const response = await axios.get(
+          `${backendUrl}/api/user/slot-availability/${docInfo._id}/${slotDate}`
+        );
+        if (response.data.success) {
+          unavailableSlots = response.data.unavailableSlots;
+        }
+      } catch (error) {
+        console.log("Error fetching slot availability:", error);
+        // Fallback to doctor's booked slots if API fails
+        unavailableSlots = docInfo?.slots_booked?.[slotDate] || [];
+      }
+
       let timeSlots = [];
 
       while (startTime < endTime) {
@@ -170,17 +190,11 @@ const Appointment = () => {
           minute: "2-digit",
         });
 
-        let day = startTime.getDate().toString().padStart(2, "0");
-        let month = (startTime.getMonth() + 1).toString().padStart(2, "0");
-        let year = startTime.getFullYear();
-
-        const slotDate = day + "/" + month + "/" + year;
         const slotTime = formattedTime;
 
-        const isSlotBooked =
-          docInfo?.slots_booked?.[slotDate]?.includes(slotTime) ?? false;
+        const isSlotUnavailable = unavailableSlots.includes(slotTime);
 
-        if (!isSlotBooked) {
+        if (!isSlotUnavailable) {
           timeSlots.push({
             datetime: new Date(startTime),
             time: slotTime,
@@ -222,6 +236,8 @@ const Appointment = () => {
 
   const handleAppointmentSuccess = () => {
     getDoctorsData();
+    // Refresh slot availability after successful booking
+    getAvailableSlots(selectedDate);
     navigate("/my-appointments");
     window.scrollTo(0, 0);
   };
@@ -319,6 +335,17 @@ const Appointment = () => {
   useEffect(() => {
     fetchDocInfo();
   }, [doctors, docId]);
+
+  // Refresh slot availability every 30 seconds to catch real-time changes
+  useEffect(() => {
+    if (docInfo) {
+      const interval = setInterval(() => {
+        getAvailableSlots(selectedDate);
+      }, 30000); // 30 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [docInfo, selectedDate]);
 
   useEffect(() => {
     getAvailableSlots();
@@ -867,7 +894,11 @@ const Appointment = () => {
           {/* Appointment Form Modal */}
           <AppointmentForm
             isOpen={showAppointmentForm}
-            onClose={() => setShowAppointmentForm(false)}
+            onClose={() => {
+              setShowAppointmentForm(false);
+              // Refresh slot availability when form is closed
+              getAvailableSlots(selectedDate);
+            }}
             docInfo={docInfo}
             selectedDate={docSlots[slotIndex]?.[0]?.datetime || new Date()}
             selectedTime={slotTime}

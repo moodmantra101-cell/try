@@ -21,7 +21,7 @@ export const createTestimonial = async (testimonialData, token) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        token,
       },
       body: JSON.stringify(testimonialData),
     });
@@ -46,7 +46,7 @@ export const getUserTestimonial = async (userId, token) => {
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${token}`,
+          token,
         },
       }
     );
@@ -79,7 +79,7 @@ export const updateTestimonial = async (
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          token,
         },
         body: JSON.stringify(testimonialData),
       }
@@ -106,7 +106,7 @@ export const deleteTestimonial = async (testimonialId, userId, token) => {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          token,
         },
         body: JSON.stringify({ userId }),
       }

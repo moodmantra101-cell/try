@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
 import userModel from "../models/userModel.js";
 import PDFDocument from "pdfkit";
+import ExcelJS from "exceljs";
 import blogPostModel from "../models/blogPostModel.js";
 
 // Api for adding Doctor
@@ -422,10 +423,10 @@ const downloadPatientsPDF = async (req, res) => {
       .text(`• Pending Appointments: ${pendingAppointments}`)
       .text(`• Cancelled Appointments: ${cancelledAppointments}`)
       .text(
-        `• Total Revenue (${periodText}): $${totalRevenue.toLocaleString()}`
+        `• Total Revenue (${periodText}): ₹${totalRevenue.toLocaleString()}`
       )
       .text(
-        `• Average Revenue per Patient: $${
+        `• Average Revenue per Patient: ₹${
           totalPatients > 0 ? (totalRevenue / totalPatients).toFixed(2) : 0
         }`
       )
@@ -525,7 +526,7 @@ const downloadPatientsPDF = async (req, res) => {
           .text(`• Total Appointments: ${patientTotalAppointments}`)
           .text(`• Completed: ${patientCompletedAppointments}`)
           .text(`• Cancelled: ${patientCancelledAppointments}`)
-          .text(`• Total Amount Paid: $${patientTotalAmount.toLocaleString()}`)
+          .text(`• Total Amount Paid: ₹${patientTotalAmount.toLocaleString()}`)
           .moveDown(0.5);
 
         // Recent appointments (last 5 from the 30-day period)
@@ -553,7 +554,7 @@ const downloadPatientsPDF = async (req, res) => {
               .fontSize(10)
               .font("Helvetica")
               .text(
-                `• ${appointmentDate} at ${app.slotTime} - ${doctorName} (${status}) - $${app.amount}`
+                `• ${appointmentDate} at ${app.slotTime} - ${doctorName} (${status}) - ₹${app.amount}`
               );
           });
         } else {
@@ -592,6 +593,260 @@ const downloadPatientsPDF = async (req, res) => {
   }
 };
 
+// API to download all patients report as Excel
+const downloadPatientsExcel = async (req, res) => {
+  try {
+    const { reportType = "30months" } = req.query;
+
+    // Calculate date based on report type
+    let startDate, periodText, periodDays;
+
+    switch (reportType) {
+      case "12months":
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 12);
+        periodText = "Last 12 Months";
+        periodDays = 365;
+        break;
+      case "6months":
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 6);
+        periodText = "Last 6 Months";
+        periodDays = 180;
+        break;
+      case "30months":
+      default:
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        periodText = "Last 30 Days";
+        periodDays = 30;
+        break;
+    }
+
+    const startDateTimestamp = startDate.getTime();
+
+    // Get all patients
+    const patients = await userModel.find({}).select("-password");
+
+    // Get appointments from the selected period
+    const appointments = await appointmentModel.find({
+      date: { $gte: startDateTimestamp },
+    });
+
+    // Create Excel workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Patients Report");
+
+    // Set up headers
+    worksheet.columns = [
+      { header: "Patient Name", key: "name", width: 20 },
+      { header: "Email", key: "email", width: 25 },
+      { header: "Phone", key: "phone", width: 15 },
+      { header: "Gender", key: "gender", width: 10 },
+      { header: "Date of Birth", key: "dob", width: 15 },
+      { header: "Age", key: "age", width: 10 },
+      { header: "Joined Date", key: "joinedDate", width: 15 },
+      { header: "Address", key: "address", width: 30 },
+      { header: "Total Appointments", key: "totalAppointments", width: 15 },
+      {
+        header: "Completed Appointments",
+        key: "completedAppointments",
+        width: 20,
+      },
+      {
+        header: "Cancelled Appointments",
+        key: "cancelledAppointments",
+        width: 20,
+      },
+      { header: "Total Amount Paid", key: "totalAmount", width: 15 },
+      { header: "Last Appointment Date", key: "lastAppointment", width: 20 },
+      {
+        header: "Last Appointment Status",
+        key: "lastAppointmentStatus",
+        width: 20,
+      },
+      { header: "Last Doctor", key: "lastDoctor", width: 20 },
+    ];
+
+    // Style the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: "FFFFFF" } };
+    headerRow.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "4472C4" },
+    };
+    headerRow.alignment = { horizontal: "center", vertical: "middle" };
+
+    // Add data rows
+    patients.forEach((patient, index) => {
+      // Get appointments for this patient from the selected period
+      const patientAppointments = appointments.filter(
+        (app) => app.userId === patient._id.toString()
+      );
+
+      // Calculate patient statistics
+      const patientTotalAppointments = patientAppointments.length;
+      const patientCompletedAppointments = patientAppointments.filter(
+        (app) => app.isCompleted
+      ).length;
+      const patientCancelledAppointments = patientAppointments.filter(
+        (app) => app.cancelled
+      ).length;
+      const patientTotalAmount = patientAppointments
+        .filter((app) => app.isCompleted || app.payment)
+        .reduce((sum, app) => sum + app.amount, 0);
+
+      // Get last appointment details
+      const lastAppointment = patientAppointments
+        .sort((a, b) => b.date - a.date)
+        .find(() => true);
+
+      // Calculate age
+      const age = patient.dob
+        ? Math.floor(
+            (new Date() - new Date(patient.dob)) /
+              (365.25 * 24 * 60 * 60 * 1000)
+          )
+        : "N/A";
+
+      // Format address
+      const address = patient.address
+        ? typeof patient.address === "string"
+          ? patient.address
+          : `${patient.address.line1 || ""} ${
+              patient.address.line2 || ""
+            }`.trim()
+        : "Not provided";
+
+      // Add row data
+      worksheet.addRow({
+        name: patient.name,
+        email: patient.email,
+        phone: patient.phone,
+        gender: patient.gender || "Not specified",
+        dob: patient.dob
+          ? new Date(patient.dob).toLocaleDateString()
+          : "Not specified",
+        age: age,
+        joinedDate: new Date(patient.joinedDate).toLocaleDateString(),
+        address: address,
+        totalAppointments: patientTotalAppointments,
+        completedAppointments: patientCompletedAppointments,
+        cancelledAppointments: patientCancelledAppointments,
+        totalAmount: `₹${patientTotalAmount.toLocaleString()}`,
+        lastAppointment: lastAppointment
+          ? new Date(lastAppointment.date).toLocaleDateString()
+          : "No appointments",
+        lastAppointmentStatus: lastAppointment
+          ? lastAppointment.cancelled
+            ? "Cancelled"
+            : lastAppointment.isCompleted
+            ? "Completed"
+            : "Pending"
+          : "N/A",
+        lastDoctor: lastAppointment?.docData?.name || "N/A",
+      });
+    });
+
+    // Add summary statistics worksheet
+    const summaryWorksheet = workbook.addWorksheet("Summary Statistics");
+
+    // Calculate summary statistics
+    const totalPatients = patients.length;
+    const totalAppointments = appointments.length;
+    const completedAppointments = appointments.filter(
+      (app) => app.isCompleted
+    ).length;
+    const cancelledAppointments = appointments.filter(
+      (app) => app.cancelled
+    ).length;
+    const pendingAppointments = appointments.filter(
+      (app) => !app.isCompleted && !app.cancelled
+    ).length;
+    const totalRevenue = appointments
+      .filter((app) => app.isCompleted || app.payment)
+      .reduce((sum, app) => sum + app.amount, 0);
+    const completionRate =
+      totalAppointments > 0
+        ? ((completedAppointments / totalAppointments) * 100).toFixed(1)
+        : 0;
+
+    // Add summary data
+    summaryWorksheet.columns = [
+      { header: "Metric", key: "metric", width: 30 },
+      { header: "Value", key: "value", width: 20 },
+    ];
+
+    const summaryHeaderRow = summaryWorksheet.getRow(1);
+    summaryHeaderRow.font = { bold: true, color: { argb: "FFFFFF" } };
+    summaryHeaderRow.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "4472C4" },
+    };
+
+    summaryWorksheet.addRow({ metric: "Report Period", value: periodText });
+    summaryWorksheet.addRow({ metric: "Total Patients", value: totalPatients });
+    summaryWorksheet.addRow({
+      metric: "Total Appointments",
+      value: totalAppointments,
+    });
+    summaryWorksheet.addRow({
+      metric: "Completed Appointments",
+      value: completedAppointments,
+    });
+    summaryWorksheet.addRow({
+      metric: "Pending Appointments",
+      value: pendingAppointments,
+    });
+    summaryWorksheet.addRow({
+      metric: "Cancelled Appointments",
+      value: cancelledAppointments,
+    });
+    summaryWorksheet.addRow({
+      metric: "Total Revenue",
+      value: `₹${totalRevenue.toLocaleString()}`,
+    });
+    summaryWorksheet.addRow({
+      metric: "Average Revenue per Patient",
+      value: `₹${
+        totalPatients > 0 ? (totalRevenue / totalPatients).toFixed(2) : 0
+      }`,
+    });
+    summaryWorksheet.addRow({
+      metric: "Appointment Completion Rate",
+      value: `${completionRate}%`,
+    });
+    summaryWorksheet.addRow({
+      metric: "Report Generated On",
+      value: new Date().toLocaleString(),
+    });
+
+    // Set response headers for Excel download
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="patient-details-${reportType}-${
+        new Date().toISOString().split("T")[0]
+      }.xlsx"`
+    );
+
+    // Write the workbook to the response
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("Error generating Excel:", error);
+    res.status(500).json({
+      success: false,
+      message: `Error generating Excel: ${error.message}`,
+    });
+  }
+};
+
 export {
   addDoctor,
   loginAdmin,
@@ -601,4 +856,5 @@ export {
   adminDashboard,
   allPatients,
   downloadPatientsPDF,
+  downloadPatientsExcel,
 };

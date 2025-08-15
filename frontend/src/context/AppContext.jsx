@@ -37,7 +37,7 @@ const AppContextProvider = ({ children }) => {
     }
     setIsLoadingUser(true);
     try {
-      const { data } = await axios.get(`${backendUrl}/api/user/get-profile`, {
+      const { data } = await axios.get(`${backendUrl}/api/user/profile`, {
         headers: { token },
       });
       if (data.success) {

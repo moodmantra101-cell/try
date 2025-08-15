@@ -8,6 +8,7 @@ import {
   adminDashboard,
   allPatients,
   downloadPatientsPDF,
+  downloadPatientsExcel,
 } from "../controllers/adminController.js";
 import upload from "../middlewares/multer.js";
 import authAdmin from "../middlewares/authAdmin.js";
@@ -29,6 +30,7 @@ adminRouter.post("/login", loginAdmin);
 adminRouter.post("/all-doctors", authAdmin, allDoctors);
 adminRouter.get("/patients", authAdmin, allPatients);
 adminRouter.get("/download-patients-pdf", authAdmin, downloadPatientsPDF);
+adminRouter.get("/download-patients-excel", authAdmin, downloadPatientsExcel);
 adminRouter.post("/change-availability", authAdmin, changeAvailability);
 adminRouter.get("/appointments", authAdmin, appointmentsAdmin);
 adminRouter.post("/cancel-appointment", authAdmin, appointmentCancel);

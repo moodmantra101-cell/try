@@ -21,6 +21,7 @@ const PatientReports = () => {
   const { aToken } = useContext(AdminContext);
   const { currencySymbol } = useContext(AppContext);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
   const [reportType, setReportType] = useState("30months");
 
   const handleDownloadPDF = async () => {
@@ -56,6 +57,44 @@ const PatientReports = () => {
       toast.error("Failed to download PDF. Please try again.");
     } finally {
       setDownloadingPDF(false);
+    }
+  };
+
+  const handleDownloadExcel = async () => {
+    try {
+      setDownloadingExcel(true);
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+      const response = await axios.get(
+        `${backendUrl}/api/admin/download-patients-excel`,
+        {
+          headers: { aToken },
+          params: { reportType },
+          responseType: "blob",
+        }
+      );
+
+      // Create a blob URL and trigger download
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `patient-details-${reportType}-${
+        new Date().toISOString().split("T")[0]
+      }.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Patient details Excel downloaded successfully!");
+    } catch (error) {
+      console.error("Error downloading Excel:", error);
+      toast.error("Failed to download Excel. Please try again.");
+    } finally {
+      setDownloadingExcel(false);
     }
   };
 
@@ -154,28 +193,48 @@ const PatientReports = () => {
                 Download Patient Report
               </h3>
               <p className="text-sm text-gray-600">
-                Generate a comprehensive PDF report with all patient details
+                Generate comprehensive reports with all patient details
               </p>
             </div>
           </div>
 
-          <button
-            onClick={handleDownloadPDF}
-            disabled={downloadingPDF}
-            className="flex items-center gap-2 px-8 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-sm"
-          >
-            {downloadingPDF ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Generating Report...</span>
-              </>
-            ) : (
-              <>
-                <Download size={18} />
-                <span>Download PDF Report</span>
-              </>
-            )}
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={handleDownloadPDF}
+              disabled={downloadingPDF || downloadingExcel}
+              className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-sm"
+            >
+              {downloadingPDF ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Generating PDF...</span>
+                </>
+              ) : (
+                <>
+                  <Download size={16} />
+                  <span>Download PDF</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleDownloadExcel}
+              disabled={downloadingExcel || downloadingPDF}
+              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-sm"
+            >
+              {downloadingExcel ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Generating Excel...</span>
+                </>
+              ) : (
+                <>
+                  <Download size={16} />
+                  <span>Download Excel</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -294,7 +353,7 @@ const PatientReports = () => {
             <div className="flex items-center gap-3">
               <CheckCircle className="text-green-500" size={18} />
               <span className="text-sm text-gray-700">
-                Professional PDF formatting
+                Professional PDF and Excel formatting
               </span>
             </div>
           </div>

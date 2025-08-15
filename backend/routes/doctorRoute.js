@@ -10,6 +10,7 @@ import {
   updateDoctorProfile,
   getDoctorPatients,
   downloadDoctorPatientsPDF,
+  downloadDoctorPatientsExcel,
   getPatientMoodData,
 } from "../controllers/doctorController.js";
 import authDoctor from "../middlewares/authDoctor.js";
@@ -29,6 +30,11 @@ doctorRouter.get(
   "/download-patients-pdf",
   authDoctor,
   downloadDoctorPatientsPDF
+);
+doctorRouter.get(
+  "/download-patients-excel",
+  authDoctor,
+  downloadDoctorPatientsExcel
 );
 doctorRouter.get("/patient-mood-data", authDoctor, getPatientMoodData);
 

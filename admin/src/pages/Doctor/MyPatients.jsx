@@ -32,6 +32,7 @@ const MyPatients = () => {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
   const [reportType, setReportType] = useState("30months");
 
   // loader progress simulation
@@ -136,6 +137,44 @@ const MyPatients = () => {
     }
   };
 
+  const handleDownloadExcel = async () => {
+    try {
+      setDownloadingExcel(true);
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+      const response = await axios.get(
+        `${backendUrl}/api/doctor/download-patients-excel`,
+        {
+          headers: { dToken },
+          params: { reportType },
+          responseType: "blob",
+        }
+      );
+
+      // Create a blob URL and trigger download
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `doctor-patients-${reportType}-${
+        new Date().toISOString().split("T")[0]
+      }.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Patients report Excel downloaded successfully!");
+    } catch (error) {
+      console.error("Error downloading Excel:", error);
+      toast.error("Failed to download Excel. Please try again.");
+    } finally {
+      setDownloadingExcel(false);
+    }
+  };
+
   const getPeriodText = () => {
     switch (reportType) {
       case "30months":
@@ -186,18 +225,36 @@ const MyPatients = () => {
 
           <button
             onClick={handleDownloadPDF}
-            disabled={downloadingPDF}
+            disabled={downloadingPDF || downloadingExcel}
             className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-sm shadow-sm"
           >
             {downloadingPDF ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Generating...</span>
+                <span>Generating PDF...</span>
               </>
             ) : (
               <>
                 <Download size={16} />
                 <span>Download PDF ({getPeriodText()})</span>
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={handleDownloadExcel}
+            disabled={downloadingExcel || downloadingPDF}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-sm shadow-sm"
+          >
+            {downloadingExcel ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Generating Excel...</span>
+              </>
+            ) : (
+              <>
+                <Download size={16} />
+                <span>Download Excel ({getPeriodText()})</span>
               </>
             )}
           </button>
