@@ -327,48 +327,52 @@ const AIMoodTracker = () => {
     }));
   };
 
-  const handleSubmitMood = async () => {
-    if (!userData?._id) {
-      toast.error("Please log in to track your mood");
-      return;
-    }
+ const handleSubmitMood = async () => {
+  if (!userData?._id) {
+    toast.error("Please log in to track your mood");
+    return;
+  }
 
-    // Check if mood tracking is enabled
-    if (!preferences?.enabled) {
-      toast.error(
-        "Mood tracking is not enabled. Please enable it in settings."
-      );
-      return;
-    }
+  // Check if mood tracking is enabled
+  if (!preferences?.enabled) {
+    toast.error("Mood tracking is not enabled. Please enable it in settings.");
+    return;
+  }
 
-    try {
-      setLoading(true);
-      const formattedData = moodTrackingService.formatMoodEntry(moodData);
-      await moodTrackingService.addMoodEntry(userData._id, formattedData);
+  try {
+    setLoading(true);
+    const formattedData = moodTrackingService.formatMoodEntry(moodData);
+    await moodTrackingService.addMoodEntry(userData._id, formattedData);
 
-      toast.success("Mood entry saved successfully!");
+    toast.success("Mood entry saved successfully!");
 
-      // Reset form
-      setMoodData({
-        score: 3,
-        label: "neutral",
-        activities: [],
-        textFeedback: "",
-        stressLevel: 5,
-        energyLevel: 5,
-        socialInteraction: 5,
-        sleepHours: 8,
-      });
+    // Reset form
+    setMoodData({
+      score: 3,
+      label: "neutral",
+      activities: [],
+      textFeedback: "",
+      stressLevel: 5,
+      energyLevel: 5,
+      socialInteraction: 5,
+      sleepHours: 8,
+    });
 
-      // Reload data
-      await loadUserData();
-    } catch (error) {
-      toast.error("Failed to save mood entry");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Scroll to top after submission
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth" // for smooth scrolling
+    });
+
+    // Reload data
+    await loadUserData();
+  } catch (error) {
+    toast.error("Failed to save mood entry");
+    console.error(error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleCreateGoal = async () => {
     if (!userData?._id) {

@@ -483,16 +483,7 @@ const MyAppointments = () => {
                           {/* Status and Actions */}
                           <div className="flex flex-col gap-4 items-center justify-center">
                             {/* Status Badge */}
-                            <motion.div
-                              initial={{ scale: 0.8 }}
-                              animate={{ scale: 1 }}
-                              className={`px-6 py-3 rounded-full text-white font-semibold bg-gradient-to-r ${getStatusColor(
-                                item
-                              )} shadow-lg flex items-center gap-2`}
-                            >
-                              {getStatusIcon(item)}
-                              {getStatusText(item)}
-                            </motion.div>
+                            
 
                             {/* Action Buttons */}
                             <div className="flex flex-col gap-3 w-full max-w-xs">
