@@ -81,8 +81,11 @@ const MyAppointments = () => {
 
       if (data.success) {
         setLoadingProgress(100);
-        setAppointments(data.appointments.reverse());
-        console.log(data.appointments);
+        // Filter out appointments that are neither paid nor cancelled
+        const validAppointments = data.appointments.filter(
+          (appt) => appt.payment || appt.cancelled
+        );
+        setAppointments(validAppointments.reverse());
       }
       clearInterval(progressInterval);
     } catch (error) {
@@ -129,7 +132,6 @@ const MyAppointments = () => {
       order_id: order.id,
       receipt: order.receipt,
       handler: async (response) => {
-        console.log(response);
         try {
           const { data } = await axios.post(
             backendUrl + "/api/user/verify-razorpay",
@@ -147,11 +149,10 @@ const MyAppointments = () => {
           setLoadingPayment((prev) => ({ ...prev, [appointmentId]: false }));
         }
       },
-      // if user cancels the payment gateway to return back to our site
       modal: {
         ondismiss: function () {
-          setLoadingPayment((prev) => ({ ...prev, [appointmentId]: false }));
-          toast.info("Payment cancelled");
+          cancelAppointment(appointmentId);
+          toast.info("Payment cancelled - Appointment has been cancelled");
         },
       },
       prefill: {
@@ -162,7 +163,8 @@ const MyAppointments = () => {
 
     const rzp = new window.Razorpay(options);
     rzp.on("payment.failed", function (response) {
-      toast.error("Payment failed");
+      cancelAppointment(appointmentId);
+      toast.error("Payment failed - Appointment has been cancelled");
       setLoadingPayment((prev) => ({ ...prev, [appointmentId]: false }));
     });
     rzp.open();
@@ -217,22 +219,19 @@ const MyAppointments = () => {
   const getStatusColor = (appointment) => {
     if (appointment.cancelled) return "from-red-500 to-red-600";
     if (appointment.isCompleted) return "from-green-500 to-green-600";
-    if (appointment.payment) return "from-blue-500 to-blue-600";
-    return "from-yellow-500 to-yellow-600";
+    return "from-blue-500 to-blue-600"; // Only paid appointments will be shown
   };
 
   const getStatusText = (appointment) => {
     if (appointment.cancelled) return "Cancelled";
     if (appointment.isCompleted) return "Completed";
-    if (appointment.payment) return "Paid";
-    return "Pending Payment";
+    return "Paid"; // Only paid appointments will be shown
   };
 
   const getStatusIcon = (appointment) => {
     if (appointment.cancelled) return <FaTimes />;
     if (appointment.isCompleted) return <FaCheckCircle />;
-    if (appointment.payment) return <FaCheckCircle />;
-    return <FaCreditCard />;
+    return <FaCheckCircle />; // For paid appointments
   };
 
   return (
@@ -308,7 +307,7 @@ const MyAppointments = () => {
             transition={{ delay: 0.5, duration: 0.8 }}
             className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed"
           >
-            View, manage, and track all your scheduled appointments in one place
+            View your confirmed and completed appointments
           </motion.p>
         </motion.div>
 
@@ -343,11 +342,11 @@ const MyAppointments = () => {
                   <FaCalendarAlt className="text-white text-3xl" />
                 </motion.div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  No Appointments Yet
+                  No Appointments Found
                 </h3>
                 <p className="text-gray-600 mb-8">
-                  You haven't scheduled any appointments yet. Start your journey
-                  to better mental health today!
+                  You don't have any confirmed appointments yet. Book an
+                  appointment to get started!
                 </p>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -355,7 +354,7 @@ const MyAppointments = () => {
                   onClick={() => navigate("/doctors")}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  Book Your First Appointment
+                  Book an Appointment
                 </motion.button>
               </div>
             </motion.div>
@@ -482,107 +481,63 @@ const MyAppointments = () => {
 
                           {/* Status and Actions */}
                           <div className="flex flex-col gap-4 items-center justify-center">
-                            {/* Status Badge */}
-                            
+  {/* Status Badge - Only show Cancelled or Completed */}
+  <div className={`${
+    item.cancelled
+      ? "bg-red-100 text-red-800 border border-red-200"
+      : item.isCompleted
+      ? "bg-green-100 text-green-800 border border-green-200"
+      : "hidden" // Hide for paid but not completed appointments
+  } px-6 py-2 rounded-full text-sm font-semibold flex items-center gap-2`}>
+    {item.cancelled ? (
+      <FaTimes className="text-red-600" />
+    ) : (
+      <FaCheckCircle className="text-green-600" />
+    )}
+    {item.cancelled ? "Cancelled" : "Completed"}
+  </div>
 
-                            {/* Action Buttons */}
-                            <div className="flex flex-col gap-3 w-full max-w-xs">
-                              {!item.cancelled &&
-                                item.payment &&
-                                !item.isCompleted && (
-                                  <motion.button
-                                    className={`text-sm tracking-wider w-full px-4 py-3 border border-green-600 rounded-xl cursor-not-allowed bg-green-50 text-green-600 font-semibold ${
-                                      !animatedAppointments.has(item._id)
-                                        ? "motion-preset-confetti motion-duration-2000"
-                                        : ""
-                                    }`}
-                                    onAnimationEnd={() => {
-                                      if (!animatedAppointments.has(item._id)) {
-                                        setAnimatedAppointments(
-                                          (prev) => new Set([...prev, item._id])
-                                        );
-                                      }
-                                    }}
-                                    whileHover={{ scale: 1.02 }}
-                                  >
-                                    <FaCheckCircle className="inline mr-2" />
-                                    Paid
-                                  </motion.button>
-                                )}
+  {/* Action Buttons */}
+  <div className="flex flex-col gap-3 w-full max-w-xs">
+    {/* Payment Confirmed Button - shown for paid but not completed appointments */}
+    {!item.cancelled && item.payment && !item.isCompleted && (
+      <motion.button
+        className="text-sm w-full px-4 py-3 border border-green-300 rounded-xl cursor-not-allowed bg-green-50 text-green-700 font-semibold flex items-center justify-center gap-2"
+        whileHover={{ scale: 1.02 }}
+      >
+        <FaCheckCircle className="text-green-500" />
+        Paid
+      </motion.button>
+    )}
 
-                              {!item.cancelled &&
-                                !item.payment &&
-                                !item.isCompleted && (
-                                  <motion.button
-                                    onClick={() =>
-                                      appointmentRazorpay(item._id)
-                                    }
-                                    className={`text-sm text-center w-full px-4 py-3 border rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold transition-all duration-200 ease-in-out ${
-                                      loadingPayment[item._id]
-                                        ? "opacity-50 cursor-not-allowed flex items-center justify-center gap-3"
-                                        : "hover:shadow-lg active:scale-[95%]"
-                                    }`}
-                                    disabled={loadingPayment[item._id]}
-                                    whileHover={
-                                      !loadingPayment[item._id]
-                                        ? { scale: 1.02 }
-                                        : {}
-                                    }
-                                    whileTap={
-                                      !loadingPayment[item._id]
-                                        ? { scale: 0.98 }
-                                        : {}
-                                    }
-                                  >
-                                    {loadingPayment[item._id] ? (
-                                      <>
-                                        <FaSpinner className="animate-spin" />
-                                        Processing...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <FaCreditCard className="inline mr-2" />
-                                        Pay Online
-                                      </>
-                                    )}
-                                  </motion.button>
-                                )}
-
-                              {!item.cancelled && !item.isCompleted && (
-                                <motion.button
-                                  onClick={() => cancelAppointment(item._id)}
-                                  className={`text-sm text-stone-600 text-center w-full px-4 py-3 border border-stone-500 rounded-xl transition-all duration-200 ease-in-out font-semibold ${
-                                    loadingCancel[item._id]
-                                      ? "opacity-60 cursor-not-allowed flex items-center justify-center gap-3"
-                                      : "hover:border-transparent hover:bg-red-600 hover:text-white active:scale-[95%]"
-                                  }`}
-                                  disabled={loadingCancel[item._id]}
-                                  whileHover={
-                                    !loadingCancel[item._id]
-                                      ? { scale: 1.02 }
-                                      : {}
-                                  }
-                                  whileTap={
-                                    !loadingCancel[item._id]
-                                      ? { scale: 0.98 }
-                                      : {}
-                                  }
-                                >
-                                  {loadingCancel[item._id] ? (
-                                    <>
-                                      <FaSpinner className="animate-spin" />
-                                      Cancelling...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <FaTimes className="inline mr-2" />
-                                      Cancel Appointment
-                                    </>
-                                  )}
-                                </motion.button>
-                              )}
-                            </div>
-                          </div>
+    {/* Cancel Appointment Button */}
+    {!item.cancelled && !item.isCompleted && (
+      <motion.button
+        onClick={() => cancelAppointment(item._id)}
+        className={`text-sm text-center w-full px-4 py-3 rounded-xl transition-all duration-200 ease-in-out font-semibold ${
+          loadingCancel[item._id]
+            ? "bg-gray-100 text-gray-500 cursor-not-allowed flex items-center justify-center gap-3"
+            : "bg-white text-red-600 border border-red-300 hover:bg-red-600 hover:text-white hover:border-transparent"
+        }`}
+        disabled={loadingCancel[item._id]}
+        whileHover={!loadingCancel[item._id] ? { scale: 1.02 } : {}}
+        whileTap={!loadingCancel[item._id] ? { scale: 0.98 } : {}}
+      >
+        {loadingCancel[item._id] ? (
+          <>
+            <FaSpinner className="animate-spin" />
+            Cancelling...
+          </>
+        ) : (
+          <>
+            <FaTimes className="inline mr-2" />
+            Cancel Appointment
+          </>
+        )}
+      </motion.button>
+    )}
+  </div>
+</div>
                         </div>
                       </div>
                     </motion.div>
