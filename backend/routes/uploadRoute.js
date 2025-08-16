@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import authUser from "../middlewares/authUser.js";
+import { v2 as cloudinary } from "cloudinary";
 
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
@@ -55,19 +56,33 @@ router.post("/image", authUser, upload.single("image"), async (req, res) => {
       });
     }
 
-    // Generate the URL for the uploaded image
-    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
-      req.file.filename
-    }`;
+    // Upload image file to Cloudinary
+    const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+      resource_type: "image",
+      folder: "blog-images",
+      use_filename: true,
+      unique_filename: true,
+      overwrite: false,
+    });
+
+    // Best practice: remove the local temp file after uploading
+    try {
+      if (req.file.path && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+    } catch (_) {}
 
     res.status(200).json({
       success: true,
       message: "Image uploaded successfully",
       data: {
-        imageUrl: imageUrl,
-        filename: req.file.filename,
+        imageUrl: uploadResult.secure_url,
+        publicId: uploadResult.public_id,
+        format: uploadResult.format,
+        bytes: uploadResult.bytes,
+        width: uploadResult.width,
+        height: uploadResult.height,
         originalName: req.file.originalname,
-        size: req.file.size,
       },
     });
   } catch (error) {
