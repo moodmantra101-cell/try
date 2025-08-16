@@ -1,4 +1,4 @@
- import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -155,7 +155,7 @@ const MyAssessments = () => {
               </p>
             </div>
             <Link
-              to="/assessments"
+              to="/mood-analysis"
               className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform inline-flex items-center justify-center whitespace-nowrap"
             >
               <svg
@@ -204,7 +204,8 @@ const MyAssessments = () => {
               No assessments completed yet
             </h3>
             <p className="text-purple-600 mb-6 max-w-md mx-auto">
-              Get started by taking your first assessment to track your progress and gain insights.
+              Get started by taking your first assessment to track your progress
+              and gain insights.
             </p>
             <Link
               to="/assessments"
@@ -278,38 +279,6 @@ const MyAssessments = () => {
                         {assessment.assessmentId?.title || "N/A"}
                       </p>
                     </div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => viewDetailedResults(assessment._id)}
-                      className="bg-gradient-to-br from-purple-100 to-indigo-100 p-4 rounded-xl border border-purple-200 cursor-pointer group hover:from-purple-200 hover:to-indigo-200 transition-all duration-300"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-semibold text-purple-600 mb-1">
-                            Details
-                          </p>
-                          <p className="text-lg font-semibold text-purple-800">
-                            View Detailed Results
-                          </p>
-                        </div>
-                        <svg
-                          className="w-6 h-6 text-purple-600 group-hover:translate-x-1 transition-transform"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M14 5l7 7m0 0l-7 7m7-7H3"
-                          ></path>
-                        </svg>
-                      </div>
-                    </motion.div>
                   </div>
                 </div>
               </motion.div>

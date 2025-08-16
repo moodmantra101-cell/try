@@ -157,3 +157,14 @@ body {
   border-color: #8b5cf6 !important;
   background-color: #faf5ff !important;
 }
+
+/* Add this to your global CSS */
+.prose a {
+  color: #3b82f6 !important;
+   
+}
+
+.prose a:hover {
+  color: #2563eb !important;
+   
+}

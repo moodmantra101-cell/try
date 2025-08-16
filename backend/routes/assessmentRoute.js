@@ -18,7 +18,7 @@ router.get('/:id', getAssessmentById);
 // Protected routes (require user authentication)
 router.post('/submit', authUser, submitAssessment);
 router.get('/user/:userId', authUser, getUserAssessments);
-router.get('/results/:assessmentId', authUser, getAssessmentDetails);
+router.get('/api/assessments/results/:id', authUser, getAssessmentDetails);
 router.get('/progress/:userId', authUser, getUserProgress);
 
 export default router;

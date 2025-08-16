@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+ import React, { useState, useRef, useEffect } from "react";
 import {
   FaBold,
   FaItalic,
@@ -13,6 +13,7 @@ import {
   FaAlignJustify,
   FaImage,
   FaSpinner,
+  FaLink,
 } from "react-icons/fa";
 
 const RichTextEditor = ({
@@ -34,6 +35,9 @@ const RichTextEditor = ({
     align: null,
   });
   const [cursorPosition, setCursorPosition] = useState(null);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkText, setLinkText] = useState("");
   const updateTimeoutRef = useRef(null);
   const resizingImageRef = useRef(null);
   const initialSizeRef = useRef({ width: 0, height: 0 });
@@ -128,6 +132,15 @@ const RichTextEditor = ({
       setTimeout(restoreCursorPosition, 0);
     }
   };
+
+  const isValidUrl = (url) => {
+  try {
+    new URL(url);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
 
   const updateFormatState = () => {
     if (!editorRef.current) return;
@@ -224,6 +237,101 @@ const RichTextEditor = ({
     });
   };
 
+  const isLinkActive = () => {
+    if (!editorRef.current) return false;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return false;
+    
+    const node = selection.anchorNode;
+    return node?.parentElement?.tagName === 'A' || 
+           document.queryCommandState('createLink');
+  };
+
+  const handleLinkClick = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    saveCursorPosition();
+    
+    // Get selected text
+    const selectedText = selection.toString();
+    setLinkText(selectedText);
+    
+    // Check if selection is already a link
+    const parentAnchor = selection.anchorNode?.parentElement?.closest('a');
+    if (parentAnchor) {
+      setLinkUrl(parentAnchor.href);
+    } else {
+      setLinkUrl('');
+    }
+    
+    setShowLinkModal(true);
+  };
+
+ const insertLink = () => {
+  if (!linkUrl) return;
+  
+  // Ensure the URL has a protocol
+  let finalUrl = linkUrl.trim();
+  if (!finalUrl.match(/^[a-zA-Z]+:\/\//i)) {
+    finalUrl = `https://${finalUrl}`;
+  }
+  
+  // Validate URL
+  if (!isValidUrl(finalUrl)) {
+    alert("Please enter a valid URL (e.g., https://example.com)");
+    return;
+  }
+  
+  restoreCursorPosition();
+  
+  const selection = window.getSelection();
+  const hasSelection = selection && !selection.isCollapsed;
+  
+  if (hasSelection) {
+    document.execCommand('createLink', false, finalUrl);
+    
+    // Set attributes for the newly created link
+    const anchor = selection.anchorNode.parentElement.closest('a');
+    if (anchor) {
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      anchor.style.color = '#3b82f6'; // Blue color
+      anchor.style.textDecoration = 'underline';
+    }
+  } else {
+    const link = document.createElement('a');
+    link.href = finalUrl;
+    link.textContent = linkText || finalUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.style.color = '#3b82f6'; // Blue color
+    link.style.textDecoration = 'underline';
+    
+    const range = selection.getRangeAt(0);
+    range.insertNode(link);
+    
+    const newRange = document.createRange();
+    newRange.setStartAfter(link);
+    newRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
+  }
+  
+  setShowLinkModal(false);
+  setLinkUrl('');
+  setLinkText('');
+  editorRef.current?.focus();
+  updateContent();
+};
+
+  const removeLink = () => {
+    document.execCommand('unlink');
+    setShowLinkModal(false);
+    editorRef.current?.focus();
+    updateContent();
+  };
+
   const handlePaste = (e) => {
     e.preventDefault();
     const text = e.clipboardData.getData("text/plain");
@@ -244,6 +352,10 @@ const RichTextEditor = ({
         case "u":
           e.preventDefault();
           execCommand("underline");
+          break;
+        case "k":
+          e.preventDefault();
+          handleLinkClick();
           break;
         case "z":
           if (e.shiftKey) {
@@ -597,6 +709,18 @@ const RichTextEditor = ({
 
         <ToolbarSeparator />
 
+        {/* Link */}
+        <div className="flex items-center gap-1">
+          <ToolbarButton
+            icon={FaLink}
+            onClick={handleLinkClick}
+            title="Insert Link (Ctrl+K)"
+            isActive={isLinkActive()}
+          />
+        </div>
+
+        <ToolbarSeparator />
+
         {/* Image Upload */}
         <div className="flex items-center gap-1">
           <ToolbarButton
@@ -692,6 +816,75 @@ const RichTextEditor = ({
         data-placeholder={placeholder}
       />
 
+      {/* Link Modal */}
+      {showLinkModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-medium mb-4">Insert Link</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  URL
+                </label>
+                <input
+                  type="url"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  placeholder="https://example.com"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  autoFocus
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Text to display
+                </label>
+                <input
+                  type="text"
+                  value={linkText}
+                  onChange={(e) => setLinkText(e.target.value)}
+                  placeholder="Link text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => setShowLinkModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              
+              {linkUrl && (
+                <button
+                  type="button"
+                  onClick={removeLink}
+                  className="px-4 py-2 text-sm font-medium text-red-600 bg-red-100 rounded-md hover:bg-red-200"
+                >
+                  Remove Link
+                </button>
+              )}
+              
+              <button
+                type="button"
+                onClick={insertLink}
+                disabled={!linkUrl}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-md ${
+                  linkUrl ? 'bg-purple-600 hover:bg-purple-700' : 'bg-purple-300 cursor-not-allowed'
+                }`}
+              >
+                Insert Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* CSS for the editor */}
       <style jsx>{`
         [contenteditable="true"] {
@@ -746,6 +939,15 @@ const RichTextEditor = ({
           margin: 1em 0;
           color: #666;
           font-style: italic;
+        }
+        [contenteditable="true"] a {
+          color: #3b82f6;
+          text-decoration: underline;
+          cursor: pointer;
+        }
+        [contenteditable="true"] a:hover {
+          color: #2563eb;
+          text-decoration: underline;
         }
         .resize-handles {
           position: absolute;

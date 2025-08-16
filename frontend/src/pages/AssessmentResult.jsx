@@ -16,9 +16,9 @@ const AssessmentResult = () => {
     const fetchResult = async () => {
       try {
         // Validate ID first
-        if (!id || id.length !== 24) {
-          throw new Error("Invalid assessment ID format");
-        }
+if (!id || !/^[0-9a-f]{24}(:\d+)?$/.test(id)) {
+  throw new Error("Invalid assessment ID format");
+}
 
         // First fetch the result
         const resultResponse = await axios.get(

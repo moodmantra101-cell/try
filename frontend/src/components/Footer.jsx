@@ -27,6 +27,7 @@ const Footer = () => {
     { name: "Home", path: "/" },
     { name: "About Us", path: "/about" },
     { name: "Our Services", path: "/services" },
+    { name: "Our Team", path: "/ourTeam" },
     { name: "Expert Therapists", path: "/doctors" },
     { name: "Contact Us", path: "/contact" },
     {

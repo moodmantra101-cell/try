@@ -130,7 +130,7 @@ const Navbar = () => {
               { path: "/", label: "HOME" },
               { path: "/services", label: "SERVICES" },
               { path: "/doctors", label: "EXPERTS" },
-              { path: "/ourTeam", label: "OUR TEAM" },
+              { path: "/resources", label: "RESOURCES" },
               { path: "/moodtracker", label: "MOOD TRACKER" },
               // { path: "/mood-dashboard", label: "MOOD DASHBOARD" },
               { path: "/mood-analysis", label: "ASSESSMENT" },
@@ -241,6 +241,20 @@ const Navbar = () => {
                           >
                             <span className="text-gray-700 font-medium text-sm sm:text-base">
                               My Appointments
+                            </span>
+                          </motion.div>
+                            <motion.div
+                            whileHover={{
+                              backgroundColor: "rgba(124, 58, 237, 0.1)",
+                            }}
+                            onClick={() => {
+                              navigate("my-assessments");
+                              setShowProfileMenu(false);
+                            }}
+                            className="flex items-center px-3 py-3 sm:py-2.5 rounded-xl cursor-pointer transition-all duration-200 touch-manipulation"
+                          >
+                            <span className="text-gray-700 font-medium text-sm sm:text-base">
+                              My Assessment Result
                             </span>
                           </motion.div>
                           <motion.div
