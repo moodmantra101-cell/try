@@ -208,7 +208,7 @@ const MyAssessments = () => {
               and gain insights.
             </p>
             <Link
-              to="/assessments"
+              to="/mood-analysis"
               className="inline-block px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform"
             >
               Take an Assessment
