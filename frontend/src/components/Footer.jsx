@@ -328,7 +328,7 @@ const Footer = () => {
                     className="mt-1 text-pink-400 group-hover:scale-110 transition-transform duration-300"
                     size={18}
                   />
-                  <span className="text-purple-200">+1-212-456-7890</span>
+                  <span className="text-purple-200">+91-9452-155-154</span>
                 </motion.div>
 
                 <motion.div
@@ -343,9 +343,26 @@ const Footer = () => {
                     href="mailto:tusharwork.001@gmail.com"
                     className="text-purple-200 hover:text-pink-400 transition-colors duration-300"
                   >
-                    xxxxxxxx.001@gmail.com
+                     moodmantrateam@gmail.com
                   </a>
                 </motion.div>
+
+                  <motion.div
+                  whileHover={{ x: 5 }}
+                  className="flex items-start gap-3 group"
+                >
+                  <Mail
+                    className="mt-1 text-pink-400 group-hover:scale-110 transition-transform duration-300"
+                    size={18}
+                  />
+                  <a
+                    href="mailto:tusharwork.001@gmail.com"
+                    className="text-purple-200 hover:text-pink-400 transition-colors duration-300"
+                  >
+                    info@moodmantra.com
+                  </a>
+                </motion.div>
+
 
                 <motion.div
                   whileHover={{ x: 5 }}
@@ -356,9 +373,9 @@ const Footer = () => {
                     size={18}
                   />
                   <span className="text-purple-200">
-                    123 Mental Health Street
+                   Desqworks, Gurgaon, 
                     <br />
-                    Wellness City, WC 12345
+                    Kanakpura Road, Bangalore
                   </span>
                 </motion.div>
               </div>
