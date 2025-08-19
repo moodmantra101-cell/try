@@ -1,4 +1,4 @@
-import { AdminContext } from '@/context/AdminContext'
+ import { AdminContext } from '@/context/AdminContext'
 import React, { useContext, useEffect, useState } from 'react'
 import {
   Tooltip,
@@ -37,34 +37,38 @@ const DoctorsList = () => {
         All Doctors
       </h1>
 
-      <div className='w-full flex flex-row items-center justify-center sm:justify-start flex-wrap gap-2 p-1 sm:gap-5 sm:max-h-[81.5vh] sm:overflow-y-scroll doctorlist-scrollbar'>
+      <div className='w-full flex flex-row items-center justify-center sm:justify-start flex-wrap gap-4 p-1 sm:max-h-[81.5vh] sm:overflow-y-scroll doctorlist-scrollbar'>
         {doctors.map((item, index) => (
           <motion.div
-            className='border border-primary/50 rounded-md w-[45vw] sm:w-56 overflow-hidden group hover:scale-[101%] transition-all duration-200 ease-in bg-primary/10'
+            className='border border-primary/50 rounded-lg w-[160px] sm:w-56 overflow-hidden group hover:scale-[102%] transition-all duration-200 ease-in bg-white shadow-sm hover:shadow-md'
             key={index}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.1, delay: index * 0.05 }}
           >
-            <img
-              className='bg-primary/10 group-hover:bg-primary/50 transition-all duration-200 ease-in'
-              src={item.image}
-              alt='doctor image'
-            />
-            <div className='px-4 py-3 flex flex-col items-stretch justify-center'>
-              <p className='text-neutral-800 text-base whitespace-nowrap overflow-x-scroll sm:text-lg font-medium hide-the-scrollbar'>
+            {/* Fixed aspect ratio image container */}
+            <div className='h-40 sm:h-56 w-full overflow-hidden bg-primary/10 flex items-center justify-center'>
+              <img
+                className='w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ease-in-out'
+                src={item.image}
+                alt='doctor image'
+              />
+            </div>
+            
+            <div className='px-3 py-3 flex flex-col items-stretch justify-center'>
+              <p className='text-neutral-800 text-sm sm:text-base font-medium truncate' title={item.name}>
                 {item.name}
               </p>
-              <p className='text-zinc-600 text-sm whitespace-nowrap overflow-x-scroll hide-the-scrollbar'>
+              <p className='text-zinc-600 text-xs sm:text-sm truncate mt-1' title={item.speciality}>
                 {item.speciality}
               </p>
-              <div className='flex items-center justify-start mt-2.5 gap-1.5'>
+              <div className='flex items-center justify-start mt-3 gap-2'>
                 <TooltipProvider delayDuration={300}>
                   <Tooltip>
                     <TooltipTrigger>
                       <input
                         onChange={() => changeAvailability(item._id)}
-                        className='size-3.5 -translate-y-[0.5px] cursor-pointer hover:scale-[115%] active:scale-[90%] transition-all duration-200 ease-in-out'
+                        className='size-4 cursor-pointer hover:scale-110 active:scale-95 transition-all duration-150 ease-in-out accent-primary'
                         type='checkbox'
                         checked={item.available}
                       />
@@ -78,7 +82,9 @@ const DoctorsList = () => {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                <p className='text-sm font-medium tracking-wide'>Available</p>
+                <p className='text-xs sm:text-sm font-medium text-gray-700'>
+                  {item.available ? 'Available' : 'Unavailable'}
+                </p>
               </div>
             </div>
           </motion.div>

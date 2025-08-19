@@ -1,7 +1,7 @@
 import { assets } from "@/assets/assets";
 import { AdminContext } from "@/context/AdminContext";
 import { AppContext } from "@/context/AppContext";
-import { CalendarDays, Loader2, X, FileText } from "lucide-react";
+import { CalendarDays, Loader2, X, FileText, AlertCircle } from "lucide-react";
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -63,72 +63,86 @@ const Dashboard = () => {
 
         <div className="flex flex-col items-stretch gap-5 motion-translate-x-in-[0%] motion-translate-y-in-[-10%] motion-duration-[0.38s] motion-ease-spring-bouncier">
           {/* ----------- glimpse ------------ */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 items-stretch gap-4 w-full">
             {/* doctors */}
-            <div className="bg-white border p-3.5 sm:pl-4 sm:pr-12 sm:py-4 min-w-52 rounded-xl flex items-center gap-4 group hover:bg-primary hover:shadow-xl hover:border-transparent hover:cursor-none transition-all duration-300 ease-in-out">
+            <div className="bg-white border p-3 sm:px-4 sm:py-3 rounded-lg flex items-center gap-3 w-full group hover:bg-primary hover:shadow-xl hover:border-transparent hover:cursor-none transition-all duration-300 ease-in-out">
               <img
-                className="size-12 sm:size-16 rounded-full select-none"
+                className="size-10 sm:size-12 rounded-full select-none"
                 draggable="false"
                 src={assets.doctor_icon}
                 alt="doctor icon"
               />
-              <div className="sm:h-16 flex flex-col items-start flex-1 select-none">
-                <p className="w-full font-bold text-gray-700 text-2xl sm:text-3xl group-hover:text-white transition-all duration-300 ease-in-out">
+              <div className="sm:h-14 flex flex-col items-start flex-1 select-none">
+                <p className="w-full font-bold text-gray-700 text-xl sm:text-2xl group-hover:text-white transition-all duration-300 ease-in-out">
                   {dashData.doctors}
                 </p>
-                <p className="text-base sm:text-xl w-full text-gray-500 group-hover:text-white/85 transition-all duration-300 ease-in-out">
+                <p className="text-sm sm:text-base w-full text-gray-500 group-hover:text-white/85 transition-all duration-300 ease-in-out">
                   Doctors
                 </p>
               </div>
             </div>
             {/* patients */}
-            <div className="bg-white border p-3.5 sm:pl-4 sm:pr-12 sm:py-4 min-w-52 rounded-xl flex items-center gap-4 group hover:bg-primary hover:shadow-xl hover:border-transparent hover:cursor-none transition-all duration-300 ease-in-out">
+            <div className="bg-white border p-3 sm:px-4 sm:py-3 rounded-lg flex items-center gap-3 w-full group hover:bg-primary hover:shadow-xl hover:border-transparent hover:cursor-none transition-all duration-300 ease-in-out">
               <img
-                className="size-12 sm:size-16 rounded-full select-none"
+                className="size-10 sm:size-12 rounded-full select-none"
                 draggable="false"
                 src={assets.patients_icon}
                 alt="doctor icon"
               />
-              <div className="sm:h-16 flex flex-col items-start flex-1 select-none">
-                <p className="w-full font-bold text-gray-700 text-2xl sm:text-3xl group-hover:text-white transition-all duration-300 ease-in-out">
+              <div className="sm:h-14 flex flex-col items-start flex-1 select-none">
+                <p className="w-full font-bold text-gray-700 text-xl sm:text-2xl group-hover:text-white transition-all duration-300 ease-in-out">
                   {dashData.patients}
                 </p>
-                <p className="text-base sm:text-xl w-full text-gray-500 group-hover:text-white/85 transition-all duration-300 ease-in-out">
+                <p className="text-sm sm:text-base w-full text-gray-500 group-hover:text-white/85 transition-all duration-300 ease-in-out">
                   Patients
                 </p>
               </div>
             </div>
             {/* appointments */}
-            <div className="bg-white border p-3.5 sm:pl-4 sm:pr-12 sm:py-4 min-w-52 rounded-xl flex items-center gap-4 group hover:bg-primary hover:shadow-xl hover:border-transparent hover:cursor-none transition-all duration-300 ease-in-out">
+            <div className="bg-white border p-3 sm:px-4 sm:py-3 rounded-lg flex items-center gap-3 w-full group hover:bg-primary hover:shadow-xl hover:border-transparent hover:cursor-none transition-all duration-300 ease-in-out">
               <img
-                className="size-12 sm:size-16 rounded-full select-none"
+                className="size-10 sm:size-12 rounded-full select-none"
                 draggable="false"
                 src={assets.appointments_icon}
                 alt="doctor icon"
               />
-              <div className="sm:h-16 flex flex-col items-start flex-1 select-none">
-                <p className="w-full font-bold text-gray-700 text-2xl sm:text-3xl group-hover:text-white transition-all duration-300 ease-in-out">
+              <div className="sm:h-14 flex flex-col items-start flex-1 select-none">
+                <p className="w-full font-bold text-gray-700 text-xl sm:text-2xl group-hover:text-white transition-all duration-300 ease-in-out">
                   {dashData.appointments}
                 </p>
-                <p className="text-base sm:text-xl w-full text-gray-500 group-hover:text-white/85 transition-all duration-300 ease-in-out">
+                <p className="text-sm sm:text-base w-full text-gray-500 group-hover:text-white/85 transition-all duration-300 ease-in-out">
                   Appointments
                 </p>
               </div>
             </div>
-            {/* pending posts */}
+            {/* pending posts - FIXED UI */}
             <TooltipProvider delayDuration={0}>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <div
                     onClick={() => navigate("/review-posts")}
-                    className="bg-white border p-3.5 sm:pl-4 sm:pr-12 sm:py-4 min-w-52 rounded-xl flex items-center gap-4 group hover:bg-primary hover:shadow-xl hover:border-transparent hover:cursor-pointer transition-all duration-300 ease-in-out"
+                    className="bg-white border p-3 sm:px-4 sm:py-3 rounded-lg flex items-center gap-3 w-full group hover:bg-primary hover:shadow-xl hover:border-transparent hover:cursor-pointer transition-all duration-300 ease-in-out relative"
                   >
-                    <FileText className="size-12 sm:size-16 text-yellow-500 group-hover:text-white transition-all duration-300 ease-in-out" />
-                    <div className="sm:h-16 flex flex-col items-start flex-1 select-none">
-                      <p className="w-full font-bold text-gray-700 text-2xl sm:text-3xl group-hover:text-white transition-all duration-300 ease-in-out">
+                    {/* Alert badge for pending posts count */}
+                    {dashData.pendingPosts > 0 && (
+                      <div className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-md">
+                        {dashData.pendingPosts > 9
+                          ? "9+"
+                          : dashData.pendingPosts}
+                      </div>
+                    )}
+
+                    <div className="relative">
+                      <FileText className="size-10 sm:size-12 text-yellow-500 group-hover:text-white transition-all duration-300 ease-in-out" />
+                      {dashData.pendingPosts > 0 && (
+                        <AlertCircle className="absolute top-0 right-0 size-5 fill-red-500 text-white rounded-full" />
+                      )}
+                    </div>
+                    <div className="sm:h-14 flex flex-col items-start flex-1 select-none">
+                      <p className="w-full font-bold text-gray-700 text-xl sm:text-2xl group-hover:text-white transition-all duration-300 ease-in-out">
                         {dashData.pendingPosts || 0}
                       </p>
-                      <p className="text-base sm:text-xl w-full text-gray-500 group-hover:text-white/85 transition-all duration-300 ease-in-out">
+                      <p className="text-sm sm:text-base w-full text-gray-500 group-hover:text-white/85 transition-all duration-300 ease-in-out">
                         Pending Posts
                       </p>
                     </div>
@@ -139,7 +153,13 @@ const Dashboard = () => {
                   align="center"
                   className="px-2.5 py-2 mb-1 rounded-[6px] border-none bg-primary text-white text-xs tracking-wide"
                 >
-                  Click to review pending blog posts
+                  {dashData.pendingPosts > 0
+                    ? `Click to review ${
+                        dashData.pendingPosts
+                      } pending blog post${
+                        dashData.pendingPosts !== 1 ? "s" : ""
+                      }`
+                    : "No pending posts to review"}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
