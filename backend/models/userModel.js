@@ -4,7 +4,11 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: false }, // Made optional for Google OAuth
-  image: { type: String },
+  image: {
+    type: String,
+    default:
+      "https://res.cloudinary.com/dm7mykyfw/image/upload/v1755698435/0684456b-aa2b-4631-86f7-93ceaf33303c_juegb1.jpg",
+  },
   address: { type: Object, default: { line1: "", line2: "" } },
   gender: { type: String, default: "Not Selected" },
   dob: { type: String, default: "Not Selected" },

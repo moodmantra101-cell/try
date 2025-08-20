@@ -406,7 +406,7 @@ const Testimonials = () => {
               whileHover={{ y: -8, scale: 1.02 }}
               className="group"
             >
-              <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 h-[400px] flex flex-col">
+              <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 h-[420px] flex flex-col">
                 {/* User Action Buttons - Only show for user's own testimonial */}
                 {testimonial.isUserTestimonial && (
                   <div className="absolute top-3 right-3 flex gap-2 z-50">
@@ -433,7 +433,7 @@ const Testimonials = () => {
 
                 {/* Header with gradient background */}
                 <div
-                  className={`bg-gradient-to-r ${testimonial.color} p-6 text-white relative flex-shrink-0`}
+                  className={`bg-gradient-to-r ${testimonial.color} p-6 text-white relative flex-shrink-0 min-h-[140px]`}
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
                   <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-8 -translate-x-8" />
@@ -463,7 +463,7 @@ const Testimonials = () => {
                   {/* Quote */}
                   <div className="flex-1 mb-4">
                     <p
-                      className="text-gray-700 text-base leading-relaxed font-medium"
+                      className="text-gray-700 text-base leading-relaxed font-medium line-clamp-4"
                       style={{
                         display: "-webkit-box",
                         WebkitLineClamp: 4,
@@ -485,8 +485,14 @@ const Testimonials = () => {
                   {/* Author Section */}
                   <div className="flex items-center gap-3 pt-4 border-t border-gray-100 flex-shrink-0">
                     <div className="relative">
-                      <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-bold text-sm">
-                        {testimonial.avatar}
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm bg-gradient-to-br from-purple-500 to-pink-500">
+                        {testimonial.avatar ? (
+                          <span>
+                            {String(testimonial.avatar).toUpperCase()}
+                          </span>
+                        ) : (
+                          <FaUserCircle className="text-white text-xl" />
+                        )}
                       </div>
                       {/* Verified badge */}
                       <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
