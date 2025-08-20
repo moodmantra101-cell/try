@@ -1,4 +1,5 @@
-const API_BASE_URL = "http://localhost:4000/api";
+const API_ROOT = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+const API_BASE_URL = `${API_ROOT}/api`;
 
 // Get approved testimonials (public)
 export const getApprovedTestimonials = async () => {

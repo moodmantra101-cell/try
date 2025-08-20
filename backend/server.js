@@ -23,7 +23,43 @@ connectCloudinary();
 
 // -------- middlewares ---------
 app.use(express.json({ limit: "400mb" }));
-app.use(cors());
+
+// CORS: allow production frontends and optional overrides via env
+const defaultAllowedOrigins = [
+  "https://moodmantra.com",
+  "https://www.moodmantra.com",
+  "https://admin.moodmantra.com",
+  "https://moodmantra.netlify.app",
+  "https://moodmantraadmin.netlify.app",
+  // local dev fallbacks
+  "http://localhost:5173",
+  "http://localhost:5174",
+];
+const allowedOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+const corsOrigins = allowedOrigins.length
+  ? allowedOrigins
+  : defaultAllowedOrigins;
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (corsOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("Not allowed by CORS"));
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "token",
+      "atoken",
+      "dtoken",
+    ],
+  })
+);
 
 // Serve uploaded files
 app.use("/uploads", express.static("uploads"));
