@@ -10,7 +10,7 @@ import ExcelJS from "exceljs";
 import blogPostModel from "../models/blogPostModel.js";
 
 // Api for adding Doctor
-const addDoctor = async (req, res) => {
+ const addDoctor = async (req, res) => {
   try {
     const {
       name,
@@ -24,10 +24,10 @@ const addDoctor = async (req, res) => {
       address,
     } = req.body;
 
-    const imageFile = req.files?.image?.[0]; // When using upload.fields()
-    const videoFile = req.files?.video?.[0]; // When using upload.fields()
+    const imageFile = req.files?.image?.[0];
+    const videoFile = req.files?.video?.[0];
 
-    // checking for all data to add doctor
+    // Validate required fields
     if (
       !name ||
       !email ||
@@ -38,72 +38,146 @@ const addDoctor = async (req, res) => {
       !about ||
       !fees ||
       !address ||
-      !imageFile // Ensure image is required
+      !imageFile
     ) {
-      return res.json({ success: false, message: "Missing Details." });
+      return res.status(400).json({ success: false, message: "Missing required details." });
     }
 
-    // validating email format
+    // Validate email format
     if (!validator.isEmail(email)) {
-      return res.json({
+      return res.status(400).json({
         success: false,
-        message: "Please Enter a Valid Email.",
+        message: "Please enter a valid email address.",
       });
     }
 
-    // validating strong password
+    // Check if doctor already exists
+    const existingDoctor = await doctorModel.findOne({ email });
+    if (existingDoctor) {
+      return res.status(409).json({ 
+        success: false, 
+        message: "Doctor with this email already exists." 
+      });
+    }
+
+    // Validate password strength
     if (password.length < 8) {
-      return res.json({
+      return res.status(400).json({
         success: false,
-        message: "Please Enter a Strong Password. (min. 8 characters)",
+        message: "Password must be at least 8 characters long.",
       });
     }
 
-    // hashing doctor password
+    // Validate image file
+    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    if (imageFile && !allowedImageTypes.includes(imageFile.mimetype)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid image format. Only JPEG, PNG, JPG, and WEBP are allowed.",
+      });
+    }
+
+    // Validate video file if provided
+    if (videoFile) {
+      const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+      if (!allowedVideoTypes.includes(videoFile.mimetype)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid video format. Only MP4, WebM, and OGG are allowed.",
+        });
+      }
+    }
+
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // upload image to cloudinary
-    const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
-      resource_type: "image",
-    });
-    const imageUrl = imageUpload.secure_url;
-
-    // Upload video if provided
-    let videoUrl = null;
-    if (videoFile) {
-      const videoUpload = await cloudinary.uploader.upload(videoFile.path, {
-        resource_type: "video",
-        chunk_size: 6000000, // 6MB chunks for larger videos
+    // Upload image to Cloudinary
+    let imageUrl;
+    try {
+      const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
+        resource_type: "image",
+        folder: "doctors/images"
       });
-      videoUrl = videoUpload.secure_url;
+      imageUrl = imageUpload.secure_url;
+    } catch (uploadError) {
+      console.error("Image upload error:", uploadError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to upload image. Please try again.",
+      });
     }
 
-    // doctor data
+    // Upload video to Cloudinary if provided
+    let videoUrl = null;
+    if (videoFile) {
+      try {
+        const videoUpload = await cloudinary.uploader.upload(videoFile.path, {
+          resource_type: "video",
+          folder: "doctors/videos",
+          chunk_size: 6000000,
+        });
+        videoUrl = videoUpload.secure_url;
+      } catch (uploadError) {
+        console.error("Video upload error:", uploadError);
+        // Don't fail the entire process if video upload fails
+        console.log("Video upload failed, but continuing with doctor creation");
+      }
+    }
+
+    // Parse address safely
+    let parsedAddress;
+    try {
+      parsedAddress = JSON.parse(address);
+    } catch (error) {
+      parsedAddress = { line1: address, line2: "" };
+    }
+
+    // Create doctor data object
     const doctorData = {
       name,
       email,
       image: imageUrl,
-      video: videoUrl, // Add video URL to doctor data
+      video: videoUrl,
       password: hashedPassword,
       speciality,
       degree,
       experience,
       about,
-      fees,
-      address: JSON.parse(address),
+      fees: Number(fees),
+      address: parsedAddress,
       date: Date.now(),
     };
 
+    // Save to database
     const newDoctor = new doctorModel(doctorData);
     await newDoctor.save();
 
-    res.status(201).json({ success: true, message: "Doctor Added 🎉" });
+    res.status(201).json({ success: true, message: "Doctor added successfully! 🎉" });
   } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .json({ success: false, message: `Server error: ${error.message}` });
+    console.error("Add doctor error:", error);
+    
+    // Handle specific error types
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(val => val.message);
+      return res.status(400).json({
+        success: false,
+        message: "Validation error",
+        errors: errors
+      });
+    }
+    
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Doctor with this email already exists.",
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: "Internal server error. Please try again later." 
+    });
   }
 };
 
