@@ -170,8 +170,9 @@ const Appointment = () => {
       // Get real-time slot availability for this date
       let unavailableSlots = [];
       try {
+        const encodedDate = encodeURIComponent(slotDate);
         const response = await axios.get(
-          `${backendUrl}/api/user/slot-availability/${docInfo._id}/${slotDate}`
+          `${backendUrl}/api/user/slot-availability/${docInfo._id}/${encodedDate}`
         );
         if (response.data.success) {
           unavailableSlots = response.data.unavailableSlots;
