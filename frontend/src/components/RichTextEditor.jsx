@@ -1,4 +1,4 @@
- import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   FaBold,
   FaItalic,
@@ -9,7 +9,7 @@ import {
   FaQuoteLeft,
   FaAlignLeft,
   FaAlignCenter,
-   FaLink,
+  FaLink,
   FaAlignRight,
   FaAlignJustify,
   FaImage,
@@ -59,24 +59,25 @@ const RichTextEditor = ({
     }
   };
 
-    const isValidUrl = (url) => {
-  try {
-    new URL(url);
-    return true;
-  } catch (e) {
-    return false;
-  }
-};
+  const isValidUrl = (url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
 
-
- const isLinkActive = () => {
+  const isLinkActive = () => {
     if (!editorRef.current) return false;
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return false;
-    
+
     const node = selection.anchorNode;
-    return node?.parentElement?.tagName === 'A' || 
-           document.queryCommandState('createLink');
+    return (
+      node?.parentElement?.tagName === "A" ||
+      document.queryCommandState("createLink")
+    );
   };
 
   const handleLinkClick = () => {
@@ -84,81 +85,81 @@ const RichTextEditor = ({
     if (!selection || selection.rangeCount === 0) return;
 
     saveCursorPosition();
-    
+
     // Get selected text
     const selectedText = selection.toString();
     setLinkText(selectedText);
-    
+
     // Check if selection is already a link
-    const parentAnchor = selection.anchorNode?.parentElement?.closest('a');
+    const parentAnchor = selection.anchorNode?.parentElement?.closest("a");
     if (parentAnchor) {
       setLinkUrl(parentAnchor.href);
     } else {
-      setLinkUrl('');
+      setLinkUrl("");
     }
-    
+
     setShowLinkModal(true);
   };
 
- const insertLink = () => {
-  if (!linkUrl) return;
-  
-  // Ensure the URL has a protocol
-  let finalUrl = linkUrl.trim();
-  if (!finalUrl.match(/^[a-zA-Z]+:\/\//i)) {
-    finalUrl = `https://${finalUrl}`;
-  }
-  
-  // Validate URL
-  if (!isValidUrl(finalUrl)) {
-    alert("Please enter a valid URL (e.g., https://example.com)");
-    return;
-  }
-  
-  restoreCursorPosition();
-  
-  const selection = window.getSelection();
-  const hasSelection = selection && !selection.isCollapsed;
-  
-  if (hasSelection) {
-    document.execCommand('createLink', false, finalUrl);
-    
-    // Set attributes for the newly created link
-    const anchor = selection.anchorNode.parentElement.closest('a');
-    if (anchor) {
-      anchor.target = '_blank';
-      anchor.rel = 'noopener noreferrer';
-      anchor.style.color = '#3b82f6'; // Blue color
-      anchor.style.textDecoration = 'underline';
+  const insertLink = () => {
+    if (!linkUrl) return;
+
+    // Ensure the URL has a protocol
+    let finalUrl = linkUrl.trim();
+    if (!finalUrl.match(/^[a-zA-Z]+:\/\//i)) {
+      finalUrl = `https://${finalUrl}`;
     }
-  } else {
-    const link = document.createElement('a');
-    link.href = finalUrl;
-    link.textContent = linkText || finalUrl;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.style.color = '#3b82f6'; // Blue color
-    link.style.textDecoration = 'underline';
-    
-    const range = selection.getRangeAt(0);
-    range.insertNode(link);
-    
-    const newRange = document.createRange();
-    newRange.setStartAfter(link);
-    newRange.collapse(true);
-    selection.removeAllRanges();
-    selection.addRange(newRange);
-  }
-  
-  setShowLinkModal(false);
-  setLinkUrl('');
-  setLinkText('');
-  editorRef.current?.focus();
-  updateContent();
-};
+
+    // Validate URL
+    if (!isValidUrl(finalUrl)) {
+      alert("Please enter a valid URL (e.g., https://example.com)");
+      return;
+    }
+
+    restoreCursorPosition();
+
+    const selection = window.getSelection();
+    const hasSelection = selection && !selection.isCollapsed;
+
+    if (hasSelection) {
+      document.execCommand("createLink", false, finalUrl);
+
+      // Set attributes for the newly created link
+      const anchor = selection.anchorNode.parentElement.closest("a");
+      if (anchor) {
+        anchor.target = "_blank";
+        anchor.rel = "noopener noreferrer";
+        anchor.style.color = "#3b82f6"; // Blue color
+        anchor.style.textDecoration = "underline";
+      }
+    } else {
+      const link = document.createElement("a");
+      link.href = finalUrl;
+      link.textContent = linkText || finalUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.style.color = "#3b82f6"; // Blue color
+      link.style.textDecoration = "underline";
+
+      const range = selection.getRangeAt(0);
+      range.insertNode(link);
+
+      const newRange = document.createRange();
+      newRange.setStartAfter(link);
+      newRange.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(newRange);
+    }
+
+    setShowLinkModal(false);
+    setLinkUrl("");
+    setLinkText("");
+    editorRef.current?.focus();
+    updateContent();
+  };
 
   const removeLink = () => {
-    document.execCommand('unlink');
+    document.execCommand("unlink");
     setShowLinkModal(false);
     editorRef.current?.focus();
     updateContent();
@@ -303,12 +304,15 @@ const RichTextEditor = ({
       const commonAncestor = range.commonAncestorContainer;
       if (commonAncestor.nodeType === Node.ELEMENT_NODE) {
         const element = commonAncestor;
-        bold = element.style.fontWeight === "bold" || 
-               document.queryCommandState("bold");
-        italic = element.style.fontStyle === "italic" || 
-                 document.queryCommandState("italic");
-        underline = element.style.textDecoration.includes("underline") || 
-                   document.queryCommandState("underline");
+        bold =
+          element.style.fontWeight === "bold" ||
+          document.queryCommandState("bold");
+        italic =
+          element.style.fontStyle === "italic" ||
+          document.queryCommandState("italic");
+        underline =
+          element.style.textDecoration.includes("underline") ||
+          document.queryCommandState("underline");
       }
     } else {
       bold = document.queryCommandState("bold");
@@ -317,9 +321,13 @@ const RichTextEditor = ({
 
       if (node && node.nodeType === Node.TEXT_NODE && parentElement) {
         const computedStyle = window.getComputedStyle(parentElement);
-        bold = bold || computedStyle.fontWeight === "700" || computedStyle.fontWeight === "bold";
+        bold =
+          bold ||
+          computedStyle.fontWeight === "700" ||
+          computedStyle.fontWeight === "bold";
         italic = italic || computedStyle.fontStyle === "italic";
-        underline = underline || computedStyle.textDecoration.includes("underline");
+        underline =
+          underline || computedStyle.textDecoration.includes("underline");
       }
     }
 
@@ -342,7 +350,7 @@ const RichTextEditor = ({
   const handleKeyDown = (e) => {
     if (e.ctrlKey || e.metaKey) {
       switch (e.key.toLowerCase()) {
-          case "k":
+        case "k":
           e.preventDefault();
           handleLinkClick();
           break;
@@ -621,6 +629,16 @@ const RichTextEditor = ({
 
         <ToolbarSeparator />
 
+        {/* Links */}
+        <div className="flex items-center gap-1">
+          <ToolbarButton
+            icon={FaLink}
+            onClick={handleLinkClick}
+            title="Insert/Edit Link (Ctrl+K)"
+            isActive={isLinkActive()}
+          />
+        </div>
+
         {/* Headings */}
         <div className="flex items-center gap-1">
           <ToolbarButton
@@ -804,6 +822,64 @@ const RichTextEditor = ({
         }}
         data-placeholder={placeholder}
       />
+
+      {/* Link Modal */}
+      {showLinkModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-4">
+            <h3 className="text-lg font-semibold mb-3">Insert link</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Text</label>
+                <input
+                  type="text"
+                  value={linkText}
+                  onChange={(e) => setLinkText(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Link text"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">URL</label>
+                <input
+                  type="text"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="https://example.com"
+                />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="px-3 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  onClick={() => setShowLinkModal(false)}
+                >
+                  Cancel
+                </button>
+                {isLinkActive() && (
+                  <button
+                    type="button"
+                    className="px-3 py-2 text-sm rounded-md border border-red-200 text-red-600 hover:bg-red-50"
+                    onClick={removeLink}
+                  >
+                    Remove link
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                className="px-3 py-2 text-sm rounded-md bg-purple-600 text-white hover:bg-purple-700"
+                onClick={insertLink}
+              >
+                {isLinkActive() ? "Update link" : "Insert link"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CSS for the editor */}
       <style jsx>{`
