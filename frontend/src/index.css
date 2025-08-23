@@ -100,6 +100,55 @@ body {
   margin: 0.25rem 0;
 }
 
+/* Blog Post Content Styles */
+.prose h1 {
+  font-size: 2.25rem !important;
+  font-weight: 800 !important;
+  margin: 2rem 0 1rem 0 !important;
+  color: #111827 !important;
+  line-height: 1.2 !important;
+}
+
+.prose h2 {
+  font-size: 1.875rem !important;
+  font-weight: 700 !important;
+  margin: 1.75rem 0 0.75rem 0 !important;
+  color: #1f2937 !important;
+  line-height: 1.3 !important;
+}
+
+.prose h3 {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  margin: 1.5rem 0 0.5rem 0 !important;
+  color: #374151 !important;
+  line-height: 1.4 !important;
+}
+
+.prose h4 {
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  margin: 1.25rem 0 0.5rem 0 !important;
+  color: #4b5563 !important;
+  line-height: 1.4 !important;
+}
+
+.prose h5 {
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  margin: 1rem 0 0.5rem 0 !important;
+  color: #6b7280 !important;
+  line-height: 1.4 !important;
+}
+
+.prose h6 {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  margin: 0.75rem 0 0.5rem 0 !important;
+  color: #6b7280 !important;
+  line-height: 1.4 !important;
+}
+
 [contenteditable] p {
   margin: 0.5rem 0;
 }
@@ -161,10 +210,8 @@ body {
 /* Add this to your global CSS */
 .prose a {
   color: #3b82f6 !important;
-   
 }
 
 .prose a:hover {
   color: #2563eb !important;
-   
 }

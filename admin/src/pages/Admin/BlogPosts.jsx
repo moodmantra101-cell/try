@@ -220,7 +220,9 @@ const BlogPosts = () => {
                     </div>
 
                     <p className="text-gray-600 text-sm mb-3 line-clamp-3">
-                      {post.excerpt || post.content.substring(0, 200) + "..."}
+                      {post.excerpt ||
+                        post.content.replace(/<[^>]*>/g, "").substring(0, 200) +
+                          "..."}
                     </p>
 
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
@@ -428,7 +430,7 @@ const BlogPosts = () => {
                   <div
                     className="text-gray-700 leading-relaxed"
                     dangerouslySetInnerHTML={{
-                      __html: selectedPost.content.replace(/\n/g, "<br />"),
+                      __html: selectedPost.content,
                     }}
                   />
                 </div>

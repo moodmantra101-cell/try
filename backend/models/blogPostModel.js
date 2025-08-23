@@ -104,10 +104,10 @@ blogPostSchema.pre("save", function (next) {
 
   // Generate excerpt if not provided
   if (!this.excerpt && this.content) {
+    // Strip HTML tags for excerpt
+    const plainText = this.content.replace(/<[^>]*>/g, "");
     this.excerpt =
-      this.content.length > 150
-        ? this.content.substring(0, 150) + "..."
-        : this.content;
+      plainText.length > 150 ? plainText.substring(0, 150) + "..." : plainText;
   }
 
   next();

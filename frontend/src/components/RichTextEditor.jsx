@@ -647,54 +647,30 @@ const RichTextEditor = ({
             title="Heading 1"
             isActive={formatState.heading === "h1"}
           />
-          <button
-            type="button"
+          <ToolbarButton
+            icon={() => <span className="text-xs font-bold">H2</span>}
             onClick={() => execCommand("formatBlock", "<h2>")}
             title="Heading 2"
-            className={`p-2 rounded-md transition-colors ${
-              formatState.heading === "h2"
-                ? "bg-purple-100 text-purple-700 border border-purple-200"
-                : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
-            }`}
-          >
-            <span className="text-xs font-bold">H2</span>
-          </button>
-          <button
-            type="button"
+            isActive={formatState.heading === "h2"}
+          />
+          <ToolbarButton
+            icon={() => <span className="text-xs font-bold">H3</span>}
             onClick={() => execCommand("formatBlock", "<h3>")}
             title="Heading 3"
-            className={`p-2 rounded-md transition-colors ${
-              formatState.heading === "h3"
-                ? "bg-purple-100 text-purple-700 border border-purple-200"
-                : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
-            }`}
-          >
-            <span className="text-xs font-bold">H3</span>
-          </button>
-          <button
-            type="button"
+            isActive={formatState.heading === "h3"}
+          />
+          <ToolbarButton
+            icon={() => <span className="text-xs font-bold">H4</span>}
             onClick={() => execCommand("formatBlock", "<h4>")}
             title="Heading 4"
-            className={`p-2 rounded-md transition-colors ${
-              formatState.heading === "h4"
-                ? "bg-purple-100 text-purple-700 border border-purple-200"
-                : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
-            }`}
-          >
-            <span className="text-xs font-bold">H4</span>
-          </button>
-          <button
-            type="button"
+            isActive={formatState.heading === "h4"}
+          />
+          <ToolbarButton
+            icon={() => <span className="text-xs font-bold">H5</span>}
             onClick={() => execCommand("formatBlock", "<h5>")}
             title="Heading 5"
-            className={`p-2 rounded-md transition-colors ${
-              formatState.heading === "h5"
-                ? "bg-purple-100 text-purple-700 border border-purple-200"
-                : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
-            }`}
-          >
-            <span className="text-xs font-bold">H5</span>
-          </button>
+            isActive={formatState.heading === "h5"}
+          />
         </div>
 
         <ToolbarSeparator />

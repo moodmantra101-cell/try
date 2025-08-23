@@ -451,7 +451,7 @@ const BlogPost = () => {
             <div
               className="text-gray-800 leading-relaxed"
               dangerouslySetInnerHTML={{
-                __html: blogPost.content.replace(/\n/g, "<br />"),
+                __html: blogPost.content,
               }}
             />
           </div>

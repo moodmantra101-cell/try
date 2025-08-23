@@ -59,7 +59,9 @@ const Resources = () => {
           id: post.slug, // Use slug instead of _id for navigation
           title: post.title,
           author: post.author,
-          excerpt: post.excerpt || post.content.substring(0, 150) + "...",
+          excerpt:
+            post.excerpt ||
+            post.content.replace(/<[^>]*>/g, "").substring(0, 150) + "...",
           category: post.category
             .replace("-", " ")
             .replace(/\b\w/g, (l) => l.toUpperCase()),
