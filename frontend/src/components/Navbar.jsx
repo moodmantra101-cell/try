@@ -243,7 +243,7 @@ const Navbar = () => {
                               My Appointments
                             </span>
                           </motion.div>
-                            <motion.div
+                          <motion.div
                             whileHover={{
                               backgroundColor: "rgba(124, 58, 237, 0.1)",
                             }}
@@ -384,6 +384,7 @@ const Navbar = () => {
                   { path: "/", label: "Home" },
                   { path: "/doctors", label: "All Doctors" },
                   { path: "/mood-analysis", label: "Assessment" },
+                  { path: "/resources", label: "Resources" },
                   { path: "/about", label: "About" },
                   { path: "/contact", label: "Contact" },
                 ].map((link) => (

@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -7,13 +7,21 @@ import { motion } from "framer-motion";
 
 const Assessments = () => {
   const { userData, backendUrl, token } = useContext(AppContext);
+  const location = useLocation();
   const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const therapyType = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("therapy") || "individual";
+  }, [location.search]);
 
   useEffect(() => {
     const fetchAssessments = async () => {
       try {
-        const { data } = await axios.get(`${backendUrl}/api/assessments`);
+        const { data } = await axios.get(
+          `${backendUrl}/api/assessments?therapyType=${therapyType}`
+        );
         setAssessments(data);
         setLoading(false);
       } catch (error) {
@@ -25,7 +33,7 @@ const Assessments = () => {
     };
 
     fetchAssessments();
-  }, [backendUrl]);
+  }, [backendUrl, therapyType]);
 
   if (loading) {
     return (
@@ -59,11 +67,13 @@ const Assessments = () => {
         className="max-w-4xl mx-auto text-center mb-16"
       >
         <h1 className="text-4xl md:text-5xl font-bold text-purple-900 mb-4">
-          Mental Health Assessments
+          {therapyType === "individual" && "Individual Therapy Assessments"}
+          {therapyType === "couple" && "Couples Therapy Assessments"}
+          {therapyType === "family" && "Family Therapy Assessments"}
+          {therapyType === "child" && "Child Therapy Assessments"}
         </h1>
         <p className="text-xl text-purple-700 mb-8">
-          Take one of our self-assessment quizzes to evaluate your mental health
-          status and get personalized recommendations.
+          Explore curated quizzes tailored for {therapyType} therapy.
         </p>
         {!token && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 max-w-2xl mx-auto">

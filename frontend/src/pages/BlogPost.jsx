@@ -449,12 +449,23 @@ const BlogPost = () => {
         >
           <div className="prose prose-lg max-w-none">
             <div
-              className="text-gray-800 leading-relaxed"
+              className="blog-content text-gray-800 leading-relaxed"
               dangerouslySetInnerHTML={{
                 __html: blogPost.content,
               }}
             />
           </div>
+          <style>{`
+            .blog-content img {
+              max-width: 100%;
+              height: auto;
+              display: block;
+              margin: 1rem auto;
+              border-radius: 0.5rem;
+            }
+            .blog-content figure { margin: 1rem 0; }
+            .blog-content iframe, .blog-content video { max-width: 100%; }
+          `}</style>
         </motion.div>
 
         {/* Comments Section */}

@@ -15,6 +15,12 @@ const questionSchema = new mongoose.Schema({
 const assessmentSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
+  therapyType: {
+    type: String,
+    enum: ["individual", "couple", "family", "child"],
+    default: "individual",
+    index: true,
+  },
   questions: [questionSchema],
   scoringRanges: [
     {
@@ -53,6 +59,7 @@ assessmentSchema.index({ isActive: 1 }); // For filtering active assessments
 assessmentSchema.index({ createdAt: -1 }); // For sorting by creation date
 assessmentSchema.index({ updatedAt: -1 }); // For sorting by update date
 assessmentSchema.index({ title: 1 }); // For title-based searches
+assessmentSchema.index({ therapyType: 1, isActive: 1 }); // For therapy-specific queries
 
 // Text index for search functionality
 assessmentSchema.index({

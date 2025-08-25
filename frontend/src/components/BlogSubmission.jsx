@@ -582,11 +582,15 @@ const BlogSubmission = ({ isOpen, onClose, onSubmitSuccess }) => {
                               Full Content Preview:
                             </h4>
                             <div
-                              className="prose prose-sm max-w-none"
+                              className="prose prose-sm max-w-none blog-content"
                               dangerouslySetInnerHTML={{
                                 __html: formData.content,
                               }}
                             />
+                            <style>{`
+                              .blog-content img { max-width: 100%; height: auto; display: block; margin: 1rem auto; border-radius: 0.5rem; }
+                              .blog-content iframe, .blog-content video { max-width: 100%; }
+                            `}</style>
                           </div>
                         )}
                         <div className="flex items-center justify-between text-sm text-gray-500">

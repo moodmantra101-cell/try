@@ -40,7 +40,7 @@ export default function HomePage() {
       description: "Personal mental health check",
       content:
         "Assess your anxiety, depression, and overall mental well-being with our comprehensive individual assessment.",
-      link: "/individual",
+      link: "/individual?therapy=individual",
       gradient: "from-indigo-500 to-purple-600",
       bgGradient: "from-indigo-50 to-purple-50",
       features: [
@@ -55,7 +55,7 @@ export default function HomePage() {
       description: "Relationship health check",
       content:
         "Assess communication, compatibility, trust, and conflict resolution in your relationship with expert guidance.",
-      link: "/couples",
+      link: "/couples?therapy=couple",
       gradient: "from-pink-500 to-rose-600",
       bgGradient: "from-pink-50 to-rose-50",
       features: [
@@ -70,7 +70,7 @@ export default function HomePage() {
       description: "Family dynamics evaluation",
       content:
         "Evaluate family roles, support systems, and communication patterns for healthier relationships.",
-      link: "/family",
+      link: "/family?therapy=family",
       gradient: "from-emerald-500 to-teal-600",
       bgGradient: "from-emerald-50 to-teal-50",
       features: [
@@ -85,7 +85,7 @@ export default function HomePage() {
       description: "Child mood & behavior check",
       content:
         "Parent-reported assessment for children's emotional and behavioral well-being with age-appropriate tools.",
-      link: "/child",
+      link: "/child?therapy=child",
       gradient: "from-cyan-500 to-blue-600",
       bgGradient: "from-cyan-50 to-blue-50",
       features: [
@@ -136,8 +136,6 @@ export default function HomePage() {
         </div>
 
         <div className="max-w-6xl mx-auto text-center relative z-10">
-          
-
           <motion.h1
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}

@@ -20,14 +20,11 @@ import MoodTracker from "../MoodAnalyzer/moodtracker";
 import MoodAnalysis from "./pages/MoodAnalysis";
 import MoodDashboard from "./pages/MoodDashboard";
 import MoodTest from "./components/MoodAnalysis/MoodTest";
-import Child from "./components/Assessment/Child";
-
-import Family from "./components/Assessment/family";
-import Individual from "./components/Assessment/individual";
+// Removed legacy assessment-specific components in favor of unified Assessments grid
 import Result from "./pages/Result";
 
 import Resources from "./pages/Resources";
-import Couples from "./components/Assessment/Couples";
+// import Couples from "./components/Assessment/Couples";
 
 import Assessments from "./pages/Assessments";
 import Assessment from "./pages/Assessment";
@@ -113,6 +110,9 @@ const App = () => {
 
             {/* Assessment routes */}
             <Route path="/individual" element={<Assessments />} />
+            <Route path="/couples" element={<Assessments />} />
+            <Route path="/family" element={<Assessments />} />
+            <Route path="/child" element={<Assessments />} />
             <Route path="/assessment/:id" element={<Assessment />} />
             <Route path="/my-assessments" element={<MyAssessments />} />
             <Route
@@ -125,10 +125,7 @@ const App = () => {
             <Route path="/moodtracker" element={<MoodTracker />} />
             <Route path="/mood-dashboard" element={<MoodDashboard />} />
             <Route path="/moodtest" element={<MoodTest />} />
-            <Route path="/child" element={<Child />} />
-            <Route path="/couples" element={<Couples />} />
-            <Route path="/family" element={<Family />} />
-            <Route path="/individual" element={<Individual />} />
+            {/* Unified assessments handle these routes above */}
 
             {/* MOOD ANALYZER routes */}
 

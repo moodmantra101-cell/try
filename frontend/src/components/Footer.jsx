@@ -28,6 +28,7 @@ const Footer = () => {
     { name: "About Us", path: "/about" },
     { name: "Our Services", path: "/services" },
     { name: "Our Team", path: "/ourTeam" },
+    { name: "Resources", path: "/resources" },
     { name: "Expert Therapists", path: "/doctors" },
     { name: "Contact Us", path: "/contact" },
     {
@@ -38,12 +39,12 @@ const Footer = () => {
   ];
 
   const services = [
-    "Individual Therapy",
-    "Couples Counseling",
-    "Family Therapy",
-    "Child & Adolescent",
-    "Online Sessions",
-    "Mental Health Assessment",
+    { name: "Individual Therapy", path: "/individual-therapy" },
+    { name: "Couples Counseling", path: "/couples-counselling" },
+    { name: "Family Therapy", path: "/family-therapy" },
+    { name: "Child & Adolescent", path: "/child-adolescent" },
+    { name: "Online Sessions", path: "/services" },
+    { name: "Mental Health Assessment", path: "/mood-analysis" },
   ];
 
   const stats = [
@@ -301,9 +302,15 @@ const Footer = () => {
                     whileInView={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1, duration: 0.5 }}
                   >
-                    <span className="text-purple-200 hover:text-pink-400 transition-colors duration-300 cursor-pointer">
-                      {service}
-                    </span>
+                    <button
+                      onClick={() => {
+                        navigate(service.path);
+                        window.scrollTo(0, 0);
+                      }}
+                      className="text-purple-200 hover:text-pink-400 transition-colors duration-300 cursor-pointer"
+                    >
+                      {service.name}
+                    </button>
                   </motion.li>
                 ))}
               </ul>
@@ -343,11 +350,11 @@ const Footer = () => {
                     href="mailto:tusharwork.001@gmail.com"
                     className="text-purple-200 hover:text-pink-400 transition-colors duration-300"
                   >
-                     moodmantrateam@gmail.com
+                    moodmantrateam@gmail.com
                   </a>
                 </motion.div>
 
-                  <motion.div
+                <motion.div
                   whileHover={{ x: 5 }}
                   className="flex items-start gap-3 group"
                 >
@@ -363,7 +370,6 @@ const Footer = () => {
                   </a>
                 </motion.div>
 
-
                 <motion.div
                   whileHover={{ x: 5 }}
                   className="flex items-start gap-3 group"
@@ -373,7 +379,7 @@ const Footer = () => {
                     size={18}
                   />
                   <span className="text-purple-200">
-                   Desqworks, Gurgaon, 
+                    Desqworks, Gurgaon,
                     <br />
                     Kanakpura Road, Bangalore
                   </span>
@@ -401,6 +407,19 @@ const Footer = () => {
               </motion.p>
 
               <div className="flex flex-col md:flex-row items-center gap-4 mt-4 md:mt-0">
+                {/* Resources Button */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    navigate("/resources");
+                    window.scrollTo(0, 0);
+                  }}
+                  className="px-6 py-3 bg-white/10 text-white rounded-full font-semibold text-base shadow-lg hover:bg-white/20 transition-all duration-300"
+                >
+                  Resources
+                </motion.button>
+
                 {/* Admin/Doctor Login Button */}
                 {!token && (
                   <NavLink
